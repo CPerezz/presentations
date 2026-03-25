@@ -804,41 +804,9 @@
 </section>
 
 <!-- ============================================================
-     SLIDE 5 — STATE EXPIRY IS NOT THE ANSWER
+     SLIDE 5 — WHAT IS PARTIAL STATEFULNESS
      ============================================================ -->
 <section class="slide" data-slide="5">
-    <div class="slide-content">
-        <div class="eyebrow reveal">// DEAD END</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">State Expiry</span> Is Not the Answer<span class="cursor"></span></h2>
-        <hr class="divider reveal reveal-d1">
-        <div class="grid-3 reveal reveal-d2">
-            <div class="card">
-                <div class="card-title">> UX Nightmare</div>
-                <div class="card-body">Accounts "expire" after 6 months of inactivity. Users discover their funds are inaccessible.</div>
-            </div>
-            <div class="card">
-                <div class="card-title">> Protocol Complexity</div>
-                <div class="card-body">Address space extension, resurrection mechanics. Protocol complexity skyrockets.</div>
-            </div>
-            <div class="card">
-                <div class="card-title">> Doesn't Solve It</div>
-                <div class="card-body">Wallets still need expired state from the same centralized providers to bundle revival + tx.</div>
-            </div>
-        </div>
-        <div class="pull-quote reveal reveal-d3">
-            <p>"State expiry adds protocol complexity. The <span class="g">state remains centralized</span> regardless."</p>
-        </div>
-    </div>
-    <div class="slide-footer">
-        <span class="footer-cmd">$ state-expiry --status REJECTED</span>
-        <span class="footer-num">5 / 25</span>
-    </div>
-</section>
-
-<!-- ============================================================
-     SLIDE 6 — WHAT IS PARTIAL STATEFULNESS
-     ============================================================ -->
-<section class="slide" data-slide="6">
     <div class="slide-content">
         <div class="eyebrow reveal">// PARTIAL STATEFULNESS</div>
         <h2 class="slide-title reveal reveal-d1"><span class="w">Hold Only</span> What You Care About<span class="cursor"></span></h2>
@@ -865,27 +833,27 @@
     <span class="footer-source">Source: go-ethereum PR #33764 (mainnet)</span>
     <div class="slide-footer">
         <span class="footer-cmd">$ geth --partial-state</span>
-        <span class="footer-num">6 / 25</span>
+        <span class="footer-num">5 / 25</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 7 — [DIAGRAM] PS NODE ARCHITECTURE
+     SLIDE 6 — [DIAGRAM] PS NODE ARCHITECTURE
      ============================================================ -->
-<section class="slide diagram-slide" data-slide="7">
+<section class="slide diagram-slide" data-slide="6">
     <div class="slide-content" style="align-items: center;">
         <img src="assets/ps-node-architecture.png" alt="Partial stateful node architecture: account trie + tracked storage + untracked roots" class="diagram-img reveal">
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ du -sh ~/.ethereum/partial/</span>
-        <span class="footer-num">7 / 25</span>
+        <span class="footer-num">6 / 25</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 8 — THE PROOF PATH (MERGED with MPT diagram)
+     SLIDE 7 — THE PROOF PATH (MERGED with MPT diagram)
      ============================================================ -->
-<section class="slide" data-slide="8">
+<section class="slide" data-slide="7">
     <div class="slide-content">
         <div class="eyebrow reveal">// ARCHITECTURE</div>
         <h2 class="slide-title reveal reveal-d1"><span class="w">Prove</span> What You Hold<span class="cursor"></span></h2>
@@ -908,14 +876,14 @@
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ eth_getProof --contract 0xA0b8...</span>
-        <span class="footer-num">8 / 25</span>
+        <span class="footer-num">7 / 25</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 9 — THE SYNC PROCESS
+     SLIDE 8 — THE SYNC PROCESS
      ============================================================ -->
-<section class="slide" data-slide="9">
+<section class="slide" data-slide="8">
     <div class="slide-content">
         <div class="eyebrow reveal">// SYNC</div>
         <h2 class="slide-title reveal reveal-d1"><span class="w">Sync,</span> Don't Execute<span class="cursor"></span></h2>
@@ -933,6 +901,38 @@
     <span class="footer-source">Source: EIP-7928 — eips.ethereum.org/EIPS/eip-7928</span>
     <div class="slide-footer">
         <span class="footer-cmd">$ geth --syncmode partial</span>
+        <span class="footer-num">8 / 25</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 9 — STATE EXPIRY IS NOT THE ANSWER
+     ============================================================ -->
+<section class="slide" data-slide="9">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// DEAD END</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">State Expiry</span> Is Not the Answer<span class="cursor"></span></h2>
+        <hr class="divider reveal reveal-d1">
+        <div class="grid-3 reveal reveal-d2">
+            <div class="card">
+                <div class="card-title">> UX Nightmare</div>
+                <div class="card-body">Accounts "expire" after 6 months of inactivity. Users discover their funds are inaccessible.</div>
+            </div>
+            <div class="card">
+                <div class="card-title">> Protocol Complexity</div>
+                <div class="card-body">Address space extension, resurrection mechanics. Protocol complexity skyrockets.</div>
+            </div>
+            <div class="card">
+                <div class="card-title">> Doesn't Solve It</div>
+                <div class="card-body">Wallets still need expired state from the same centralized providers to bundle revival + tx.</div>
+            </div>
+        </div>
+        <div class="pull-quote reveal reveal-d3">
+            <p>"State expiry adds protocol complexity. The <span class="g">state remains centralized</span> regardless."</p>
+        </div>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ state-expiry --status REJECTED</span>
         <span class="footer-num">9 / 25</span>
     </div>
 </section>
