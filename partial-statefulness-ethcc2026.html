@@ -710,23 +710,23 @@
         <h2 class="slide-title reveal reveal-d1"><span class="w">The</span> Status Quo</h2>
         <hr class="divider reveal reveal-d1">
         <ul class="points reveal reveal-d2">
-            <li><strong>Every validator holds ~280 GB of state</strong></li>
-            <li><strong>Full re-execution</strong> of every transaction</li>
-            <li><strong>State replicated</strong> across ~10,000+ validators worldwide</li>
+            <li><strong>~13,900 nodes</strong> run 1M+ validator keys on the network</li>
+            <li><strong>Re-execution requires</strong> every full node to hold ~280 GB of state</li>
+            <li>This creates <strong>natural replication</strong> — state distributed across thousands of machines</li>
             <li><strong>Geographic distribution</strong> makes censorship nearly impossible</li>
         </ul>
         <div class="stat-row cols-3 reveal reveal-d3">
             <div class="stat">
-                <div class="stat-num">10,000+</div>
-                <div class="stat-label">Validators</div>
+                <div class="stat-num">13,900</div>
+                <div class="stat-label">Nodes</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num">1M+</div>
+                <div class="stat-label">Validator keys</div>
             </div>
             <div class="stat">
                 <div class="stat-num">280 GB</div>
                 <div class="stat-label">State per node</div>
-            </div>
-            <div class="stat">
-                <div class="stat-num">Global</div>
-                <div class="stat-label">Distribution</div>
             </div>
         </div>
     </div>
@@ -746,8 +746,9 @@
         <hr class="divider reveal reveal-d1">
         <ul class="points reveal reveal-d2">
             <li><strong>A SNARK proof replaces re-execution</strong> — verification in milliseconds</li>
-            <li><strong>Validators don't need state anymore</strong> — rational actors will drop it</li>
-            <li><strong>State concentrates in ~50 operators</strong> — builders and RPC providers</li>
+            <li><strong>The mandate disappears</strong> — full nodes no longer need state to validate</li>
+            <li><strong>State concentrates</strong> in machines with economic reasons to hold it — builders and RPC providers</li>
+            <li><strong>Snap sync degrades</strong> — fewer state-holding nodes → fewer peers → harder to bootstrap → vicious cycle</li>
         </ul>
         <div class="pull-quote reveal reveal-d3">
             <p>"If verification is free, why pay for <span class="g">state</span>?"</p>
@@ -764,7 +765,7 @@
      ============================================================ -->
 <section class="slide diagram-slide" data-slide="4">
     <div class="slide-content" style="align-items: center;">
-        <img src="assets/state-collapse.png" alt="State distribution collapse: 10,000 validators to ~50 operators" class="diagram-img reveal">
+        <img src="assets/state-collapse.png" alt="State distribution collapse: ~13,900 full nodes to a handful of operators" class="diagram-img reveal">
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ network --state-holders</span>
@@ -1024,11 +1025,11 @@
         <div class="compare-rows reveal reveal-d2">
             <div class="compare-row">
                 <span class="compare-label">Today</span>
-                <span class="compare-value">10,000+ validators replicate state globally</span>
+                <span class="compare-value">~13,900 full nodes hold state (mandated by re-execution)</span>
             </div>
             <div class="compare-row">
                 <span class="compare-label">Post-ZKEVM</span>
-                <span class="compare-value">~50 operators hold state — centralized infrastructure</span>
+                <span class="compare-value">State held only by builders + RPC providers. Snap sync degrades.</span>
             </div>
             <div class="compare-row">
                 <span class="compare-label" style="color: var(--green);">With PS</span>

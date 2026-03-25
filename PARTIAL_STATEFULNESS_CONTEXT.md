@@ -38,7 +38,7 @@ If validators don't need state, rational actors will aggressively prune it. Stat
 - **RPC providers** (Infura, Alchemy — need state to serve queries)
 
 This is dangerous because:
-- Ethereum's state is currently highly replicated across ~10,000+ validators worldwide
+- Ethereum's state is currently highly replicated across ~13,900 validators worldwide
 - Geographic distribution makes censorship extremely difficult (you'd need to target the entire globe)
 - With ZKEVMs, this replication disappears — state becomes centralized
 
@@ -226,7 +226,7 @@ Lower cost → more operators → geographic distribution → better latency/red
 ### 5.3 Decentralized State Replication
 
 **The core value proposition:**
-- Today: state replicated across ~10K+ validators worldwide
+- Today: state replicated across ~13,900 validators worldwide
 - Post-ZKEVM without PS: state concentrated in ~10-50 major operators
 - Post-ZKEVM with PS: state distributed across thousands of PS nodes, each holding their chosen slice
 - Natural redundancy gradient: popular contracts (USDC, WETH) replicated by thousands; obscure ones by a few
@@ -521,7 +521,7 @@ BALs don't include storage roots for untracked contracts. Workaround:
 
 ### Act 1: The Problem (3 min)
 - ZKEVMs decouple verification from state → validators drop state → centralization trap
-- State replication disappears: from ~10K validators to ~10-50 operators
+- State replication disappears: from ~13,900 validators to ~10-50 operators
 - Censorship risk: FOCIL doesn't matter if nobody serves you state to build txs
 - State expiry is not the answer (UX nightmare, protocol complexity, doesn't actually decentralize state — same actors hold it anyway)
 - Concrete censorship scenario: e.g., government pressures Infura to stop serving state for Tornado Cash addresses → users can't build txs → FOCIL includers never see those txs → invisible censorship without touching the protocol

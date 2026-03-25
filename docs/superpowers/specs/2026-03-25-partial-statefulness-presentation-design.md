@@ -90,20 +90,21 @@ Target audience: staking operators, core devs, general Ethereum community.
 - **Eyebrow:** `// TODAY`
 - **Title:** `The` (white) `Status Quo` (green)
 - **Bullet list (4 items):**
-  - Every validator holds ~280 GB of state
-  - Full re-execution of every transaction
-  - State replicated across ~10,000+ validators worldwide
+  - ~13,900 nodes run 1M+ validator keys on the network
+  - Re-execution requires every full node to hold ~280 GB of state
+  - This creates natural replication — state distributed across thousands of machines
   - Geographic distribution makes censorship nearly impossible
-- **Stat row (3 stats):** `10,000+` validators | `280 GB` state per node | `Global` distribution
+- **Stat row (3 stats):** `13,900` nodes | `1M+` validator keys | `280 GB` state per node
 - **Footer:** `$ eth.syncing` | `2 / 22`
 
 #### Slide 3 — The Centralization Trap
 - **Eyebrow:** `// THE SHIFT`
 - **Title:** `ZKEVMs` (green) `Change Everything` (white)
-- **Bullet list (3 items):**
+- **Bullet list (4 items):**
   - A SNARK proof replaces re-execution — verification in milliseconds
-  - Validators don't need state anymore — rational actors will drop it
-  - State concentrates in ~50 operators (builders + RPC providers)
+  - The mandate disappears — full nodes no longer need state to validate
+  - State concentrates in machines with economic reasons to hold it — builders and RPC providers
+  - Fewer state-holding nodes → fewer snap sync peers → harder to bootstrap → vicious cycle
 - **Pull quote:** "If verification is free, why pay for state?"
 - **Footer:** `$ zkvm --verify block.proof` | `3 / 22`
 
@@ -111,9 +112,8 @@ Target audience: staking operators, core devs, general Ethereum community.
 - **Type:** Full-slide diagram
 - **Image:** `state-collapse.png`
 - **HTML overlay labels (VT323):**
-  - Left side: `TODAY: ~10,000 validators`
-  - Right side: `POST-ZKEVM: ~50 operators`
-  - Center arrow or label: `99.5% reduction in state replication`
+  - Left side: `TODAY: ~13,900 full nodes`
+  - Right side: `POST-ZKEVM: builders + RPC providers only`
 - **Footer:** `$ network --state-holders` | `4 / 22`
 - **Source footnote (Plex, tiny, dim):** none needed — derived from network stats
 
@@ -235,8 +235,8 @@ Target audience: staking operators, core devs, general Ethereum community.
 - **Eyebrow:** `// THE VALUE`
 - **Title:** `Natural` (green) `Redundancy` (white)
 - **3-row comparison (before/after style):**
-  - Row 1: `Today` → 10,000+ validators replicate state globally
-  - Row 2: `Post-ZKEVM without PS` → ~50 operators hold state
+  - Row 1: `Today` → ~13,900 full nodes hold state (mandated by re-execution)
+  - Row 2: `Post-ZKEVM without PS` → State held only by builders + RPC providers. Snap sync degrades.
   - Row 3: `Post-ZKEVM with PS` → Thousands of specialized nodes, each holding their slice
 - **Body text:** "PS achieves what state expiry promises — through market forces, not protocol mandates. No protocol changes beyond BALs. Users never experience 'account expired.'"
 - **Footer:** `$ state --replication-factor` | `15 / 22`
@@ -361,7 +361,8 @@ All data points used in the presentation with their sources:
 
 | Data Point | Value | Source |
 |------------|-------|--------|
-| Ethereum validators with state | ~10,000+ | Ethereum network stats |
+| Ethereum nodes | ~13,900 | ethernodes.org / nodewatch.io |
+| Validator keys | 1M+ | beaconcha.in |
 | Full node state size | ~280 GB | lab.ethpandaops.io/ethereum/execution/state-growth |
 | PS node size (mainnet, USDC+DAI) | ~59 GB | go-ethereum PR #33764 (mainnet test) |
 | Account trie size | ~50 GB | go-ethereum PR #33764 |
