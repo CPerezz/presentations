@@ -636,6 +636,45 @@
         }
 
         /* ===========================================
+           SECTION TITLE SLIDE
+           =========================================== */
+        .section-title-slide .slide-content {
+            align-items: center;
+            text-align: center;
+            justify-content: center;
+        }
+        .section-title-slide .hero-title {
+            font-size: clamp(2.5rem, 8vw, 6rem);
+        }
+
+        /* ===========================================
+           TWO-COLUMN MERGED (text + image)
+           =========================================== */
+        .merged-layout {
+            display: flex;
+            gap: clamp(1rem, 3vw, 2rem);
+            margin-top: clamp(0.3rem, 1vh, 0.6rem);
+            align-items: center;
+        }
+        .merged-layout .merged-text { flex: 1; min-width: 0; }
+        .merged-layout .merged-img {
+            flex: 0 0 auto;
+            max-width: min(45%, 400px);
+        }
+        .merged-layout .merged-img img {
+            max-height: min(40vh, 350px);
+            width: 100%;
+            object-fit: contain;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+        @media (max-width: 800px) {
+            .merged-layout { flex-direction: column; }
+            .merged-layout .merged-img { max-width: 100%; }
+        }
+
+        /* ===========================================
            TITLE SLIDE SPECIAL
            =========================================== */
         .title-slide .slide-content {
@@ -697,7 +736,7 @@
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ cat README.md</span>
-        <span class="footer-num">1 / 22</span>
+        <span class="footer-num">1 / 25</span>
     </div>
 </section>
 
@@ -707,7 +746,7 @@
 <section class="slide" data-slide="2">
     <div class="slide-content">
         <div class="eyebrow reveal">// TODAY</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">The</span> Status Quo</h2>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">The</span> Status Quo<span class="cursor"></span></h2>
         <hr class="divider reveal reveal-d1">
         <ul class="points reveal reveal-d2">
             <li><strong>~13,900 nodes</strong> run 1M+ validator keys on the network</li>
@@ -716,23 +755,14 @@
             <li><strong>Geographic distribution</strong> makes censorship nearly impossible</li>
         </ul>
         <div class="stat-row cols-3 reveal reveal-d3">
-            <div class="stat">
-                <div class="stat-num">13,900</div>
-                <div class="stat-label">Nodes</div>
-            </div>
-            <div class="stat">
-                <div class="stat-num">1M+</div>
-                <div class="stat-label">Validator keys</div>
-            </div>
-            <div class="stat">
-                <div class="stat-num">280 GB</div>
-                <div class="stat-label">State per node</div>
-            </div>
+            <div class="stat"><div class="stat-num">13,900</div><div class="stat-label">Nodes</div></div>
+            <div class="stat"><div class="stat-num">1M+</div><div class="stat-label">Validator keys</div></div>
+            <div class="stat"><div class="stat-num">280 GB</div><div class="stat-label">State per node</div></div>
         </div>
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ eth.syncing</span>
-        <span class="footer-num">2 / 22</span>
+        <span class="footer-num">2 / 25</span>
     </div>
 </section>
 
@@ -742,7 +772,7 @@
 <section class="slide" data-slide="3">
     <div class="slide-content">
         <div class="eyebrow reveal">// THE SHIFT</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">ZKEVMs</span> Change Everything</h2>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">ZKEVMs</span> Change Everything<span class="cursor"></span></h2>
         <hr class="divider reveal reveal-d1">
         <ul class="points reveal reveal-d2">
             <li><strong>A SNARK proof replaces re-execution</strong> — verification in milliseconds</li>
@@ -756,7 +786,7 @@
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ zkvm --verify block.proof</span>
-        <span class="footer-num">3 / 22</span>
+        <span class="footer-num">3 / 25</span>
     </div>
 </section>
 
@@ -769,7 +799,7 @@
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ network --state-holders</span>
-        <span class="footer-num">4 / 22</span>
+        <span class="footer-num">4 / 25</span>
     </div>
 </section>
 
@@ -779,7 +809,7 @@
 <section class="slide" data-slide="5">
     <div class="slide-content">
         <div class="eyebrow reveal">// DEAD END</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">State Expiry</span> Is Not the Answer</h2>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">State Expiry</span> Is Not the Answer<span class="cursor"></span></h2>
         <hr class="divider reveal reveal-d1">
         <div class="grid-3 reveal reveal-d2">
             <div class="card">
@@ -801,7 +831,7 @@
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ state-expiry --status REJECTED</span>
-        <span class="footer-num">5 / 22</span>
+        <span class="footer-num">5 / 25</span>
     </div>
 </section>
 
@@ -811,7 +841,7 @@
 <section class="slide" data-slide="6">
     <div class="slide-content">
         <div class="eyebrow reveal">// PARTIAL STATEFULNESS</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">Hold Only</span> What You Care About</h2>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Hold Only</span> What You Care About<span class="cursor"></span></h2>
         <hr class="divider reveal reveal-d1">
         <div class="grid-3 reveal reveal-d2">
             <div class="card">
@@ -828,20 +858,14 @@
             </div>
         </div>
         <div class="stat-row cols-2 reveal reveal-d3">
-            <div class="stat">
-                <div class="stat-num">59 GB</div>
-                <div class="stat-label">PS node on mainnet</div>
-            </div>
-            <div class="stat">
-                <div class="stat-num">79%</div>
-                <div class="stat-label">Reduction vs full state</div>
-            </div>
+            <div class="stat"><div class="stat-num">59 GB</div><div class="stat-label">PS node on mainnet</div></div>
+            <div class="stat"><div class="stat-num">79%</div><div class="stat-label">Reduction vs full state</div></div>
         </div>
     </div>
     <span class="footer-source">Source: go-ethereum PR #33764 (mainnet)</span>
     <div class="slide-footer">
         <span class="footer-cmd">$ geth --partial-state</span>
-        <span class="footer-num">6 / 22</span>
+        <span class="footer-num">6 / 25</span>
     </div>
 </section>
 
@@ -854,69 +878,53 @@
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ du -sh ~/.ethereum/partial/</span>
-        <span class="footer-num">7 / 22</span>
+        <span class="footer-num">7 / 25</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 8 — THE PROOF PATH
+     SLIDE 8 — THE PROOF PATH (MERGED with MPT diagram)
      ============================================================ -->
 <section class="slide" data-slide="8">
     <div class="slide-content">
         <div class="eyebrow reveal">// ARCHITECTURE</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">Prove</span> What You Hold</h2>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Prove</span> What You Hold<span class="cursor"></span></h2>
         <hr class="divider reveal reveal-d1">
-        <p class="body-text reveal reveal-d2">A PS node produces full Merkle proofs for tracked contracts. The proof path traverses two trie layers:</p>
-        <div class="code-path reveal reveal-d3">
-            storage slot → storage trie → storage root<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;→ account leaf → account trie → state root
+        <div class="merged-layout reveal reveal-d2">
+            <div class="merged-text">
+                <div class="code-path">
+                    storage slot → storage trie<br>
+                    &nbsp;&nbsp;→ storage root → account leaf<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;→ account trie → state root
+                </div>
+                <p class="body-text" style="margin-top: clamp(0.3rem, 1vh, 0.6rem);">
+                    Cryptographic certainty, not trust. Proofs <span class="g">batch</span> across PS nodes sharing the same root.
+                </p>
+            </div>
+            <div class="merged-img">
+                <img src="assets/mpt-proof-path.png" alt="MPT proof path from storage slot to state root">
+            </div>
         </div>
-        <p class="body-text reveal reveal-d4">Cryptographic certainty, not trust. Proofs can be <span class="g">batched</span> across PS nodes sharing the same state root.</p>
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ eth_getProof --contract 0xA0b8...</span>
-        <span class="footer-num">8 / 22</span>
+        <span class="footer-num">8 / 25</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 9 — [DIAGRAM] MPT PROOF PATH
+     SLIDE 9 — THE SYNC PROCESS
      ============================================================ -->
-<section class="slide diagram-slide" data-slide="9">
-    <div class="slide-content" style="align-items: center;">
-        <img src="assets/mpt-proof-path.png" alt="MPT proof path: glowing trail from storage slot leaf through account trie to state root" class="diagram-img reveal">
-    </div>
-    <div class="slide-footer">
-        <span class="footer-cmd">$ mpt --trace-path 0xA0b8::slot[3]</span>
-        <span class="footer-num">9 / 22</span>
-    </div>
-</section>
-
-<!-- ============================================================
-     SLIDE 10 — THE SYNC PROCESS
-     ============================================================ -->
-<section class="slide" data-slide="10">
+<section class="slide" data-slide="9">
     <div class="slide-content">
         <div class="eyebrow reveal">// SYNC</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">Sync,</span> Don't Execute</h2>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Sync,</span> Don't Execute<span class="cursor"></span></h2>
         <hr class="divider reveal reveal-d1">
         <div class="steps reveal reveal-d2">
-            <div class="step">
-                <div class="step-num">1</div>
-                <div class="step-text"><strong>Snap sync account trie</strong> — download all accounts + intermediate MPT nodes (~50 GB)</div>
-            </div>
-            <div class="step">
-                <div class="step-num">2</div>
-                <div class="step-text"><strong>Snap sync tracked storage</strong> — download full storage tries for selected contracts</div>
-            </div>
-            <div class="step">
-                <div class="step-num">3</div>
-                <div class="step-text"><strong>Gap fill via BALs</strong> — process Block Access Lists from pivot to HEAD — no re-execution</div>
-            </div>
-            <div class="step">
-                <div class="step-num">4</div>
-                <div class="step-text"><strong>Follow the tip</strong> — apply BAL diffs per block. Serve proofs for tracked state.</div>
-            </div>
+            <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Snap sync account trie</strong> — download all accounts + intermediate MPT nodes (~50 GB)</div></div>
+            <div class="step"><div class="step-num">2</div><div class="step-text"><strong>Snap sync tracked storage</strong> — download full storage tries for selected contracts</div></div>
+            <div class="step"><div class="step-num">3</div><div class="step-text"><strong>Gap fill via BALs</strong> — process Block Access Lists from pivot to HEAD — no re-execution</div></div>
+            <div class="step"><div class="step-num">4</div><div class="step-text"><strong>Follow the tip</strong> — apply BAL diffs per block. Serve proofs for tracked state.</div></div>
         </div>
         <p class="body-text reveal reveal-d3" style="margin-top: clamp(0.3rem, 1vh, 0.6rem); font-size: var(--small-size); color: var(--text-muted);">
             BALs (EIP-7928) record all state changes per block — consensus-enforced completeness. Landing in Glamsterdam 2026.
@@ -925,7 +933,21 @@
     <span class="footer-source">Source: EIP-7928 — eips.ethereum.org/EIPS/eip-7928</span>
     <div class="slide-footer">
         <span class="footer-cmd">$ geth --syncmode partial</span>
-        <span class="footer-num">10 / 22</span>
+        <span class="footer-num">9 / 25</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 10 — [SECTION TITLE] WHAT PS ENABLES
+     ============================================================ -->
+<section class="slide section-title-slide" data-slide="10">
+    <div class="slide-content">
+        <div class="eyebrow reveal" style="font-size: clamp(1rem, 1.5vw, 1.3rem);">// ACT III</div>
+        <h1 class="hero-title reveal reveal-d1">What PS Enables<span class="cursor"></span></h1>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ ps --capabilities</span>
+        <span class="footer-num">10 / 25</span>
     </div>
 </section>
 
@@ -935,7 +957,7 @@
 <section class="slide" data-slide="11">
     <div class="slide-content">
         <div class="eyebrow reveal">// CENSORSHIP RESISTANCE</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">Inclusion Lists</span> Need State</h2>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Inclusion Lists</span> Need State<span class="cursor"></span></h2>
         <hr class="divider reveal reveal-d1">
         <ul class="points reveal reveal-d2">
             <li><strong>FOCIL (EIP-7805):</strong> 16 includers per slot select txs from the mempool</li>
@@ -950,77 +972,116 @@
     <span class="footer-source">Source: EIP-7805 — eips.ethereum.org/EIPS/eip-7805</span>
     <div class="slide-footer">
         <span class="footer-cmd">$ focil --include-from-mempool</span>
-        <span class="footer-num">11 / 22</span>
+        <span class="footer-num">11 / 25</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 12 — [DIAGRAM] FOCIL INCLUSION FLOW
+     SLIDE 12 — [DIAGRAM] IL VALIDATION PIPELINE (NEW)
      ============================================================ -->
 <section class="slide diagram-slide" data-slide="12">
+    <div class="slide-content" style="align-items: center;">
+        <img src="assets/il-validation-pipeline.png" alt="IL validation pipeline: account state, gas economics, signature, format checks filter txs into inclusion list" class="diagram-img reveal">
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ il --validate-pipeline</span>
+        <span class="footer-num">12 / 25</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 13 — [DIAGRAM] FOCIL INCLUSION FLOW
+     ============================================================ -->
+<section class="slide diagram-slide" data-slide="13">
     <div class="slide-content" style="align-items: center;">
         <img src="assets/focil-flow.png" alt="FOCIL inclusion flow: mempool → PS node → inclusion list → block builder → attesters" class="diagram-img reveal">
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ focil --status</span>
-        <span class="footer-num">12 / 22</span>
+        <span class="footer-num">13 / 25</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 13 — STATE MARKETS
+     SLIDE 14 — [SECTION TITLE] STATE MARKETS
      ============================================================ -->
-<section class="slide" data-slide="13">
+<section class="slide section-title-slide" data-slide="14">
+    <div class="slide-content">
+        <div class="eyebrow reveal" style="font-size: clamp(1rem, 1.5vw, 1.3rem);">// ECONOMICS</div>
+        <h1 class="hero-title reveal reveal-d1">State Markets<span class="cursor"></span></h1>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ state-market --init</span>
+        <span class="footer-num">14 / 25</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 15 — STATE MARKETS (MERGED with flywheel)
+     ============================================================ -->
+<section class="slide" data-slide="15">
     <div class="slide-content">
         <div class="eyebrow reveal">// ECONOMICS</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">State</span> Markets</h2>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">An Emergent</span> Economy<span class="cursor"></span></h2>
         <hr class="divider reveal reveal-d1">
-        <p class="body-text reveal reveal-d2" style="margin-bottom: clamp(0.3rem, 0.8vh, 0.5rem);">PS creates a natural market for state serving — emergent, out-of-protocol, many flavours.</p>
-        <div class="grid-2 reveal reveal-d3">
-            <div class="card">
-                <div class="card-title">> Load Balancers</div>
-                <div class="card-body">Marketplaces route queries to PS nodes tracking relevant contracts. Pick and choose.</div>
+        <div class="merged-layout reveal reveal-d2">
+            <div class="merged-text">
+                <ul class="points">
+                    <li><strong>Hot / Cold pricing</strong> — hot state = cheap (many holders), cold state = premium (few holders)</li>
+                    <li><strong>Domain specialization</strong> — DeFi nodes, NFT nodes, protocol-specific. Agents, wallets, indexers as consumers.</li>
+                    <li><strong>Attestation analogy</strong> — one query ≈ nothing. Millions/year ≈ real revenue. Economics work at scale.</li>
+                </ul>
             </div>
-            <div class="card">
-                <div class="card-title">> Hot / Cold Pricing</div>
-                <div class="card-body">Hot state = cheap (many holders). Cold state = premium (few holders, higher margin).</div>
-            </div>
-            <div class="card">
-                <div class="card-title">> Domain Specialization</div>
-                <div class="card-body">DeFi nodes, NFT nodes, protocol-specific. Agents, wallets, indexers as consumers.</div>
-            </div>
-            <div class="card">
-                <div class="card-title">> Attestation Analogy</div>
-                <div class="card-body">One query ≈ nothing. Millions/year ≈ real revenue. Economics work at scale, not per-event.</div>
+            <div class="merged-img">
+                <img src="assets/state-market-flywheel.png" alt="State market flywheel: lower cost → more operators → geo distribution → more queries → more revenue">
             </div>
         </div>
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ state-market --list-providers</span>
-        <span class="footer-num">13 / 22</span>
+        <span class="footer-num">15 / 25</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 14 — [DIAGRAM] STATE MARKET FLYWHEEL
+     SLIDE 16 — WHO BUYS STATE? (NEW)
      ============================================================ -->
-<section class="slide diagram-slide" data-slide="14">
-    <div class="slide-content" style="align-items: center;">
-        <img src="assets/state-market-flywheel.png" alt="State market flywheel: lower cost → more operators → geo distribution → better latency → more queries → more revenue" class="diagram-img reveal">
+<section class="slide" data-slide="16">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// CONSUMERS</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Who</span> Buys State?<span class="cursor"></span></h2>
+        <hr class="divider reveal reveal-d1">
+        <div class="grid-3 reveal reveal-d2">
+            <div class="card">
+                <div class="card-title">> Protocols & DAOs</div>
+                <div class="card-body">Uniswap DAO running PS nodes for Uniswap contracts isn't charity — it's infrastructure ROI. State availability directly affects tx success rate.</div>
+            </div>
+            <div class="card">
+                <div class="card-title">> Cross-chain Bridges</div>
+                <div class="card-body">ZK bridges need L1 state proofs for verification. PS nodes serve cryptographic proofs — trustless cross-chain without full L1 nodes.</div>
+            </div>
+            <div class="card">
+                <div class="card-title">> Restaking (AVS)</div>
+                <div class="card-body">State serving as an Actively Validated Service. Operators earn rewards through restaking economics — no need to invent new payment infra.</div>
+            </div>
+        </div>
+        <div class="pull-quote reveal reveal-d3">
+            <p>"State markets route queries to specialized nodes. <span class="g">Load balancers</span> aggregate, <span class="g">operators</span> compete, <span class="g">users</span> get proofs."</p>
+        </div>
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ flywheel --momentum</span>
-        <span class="footer-num">14 / 22</span>
+        <span class="footer-cmd">$ state-market --consumers</span>
+        <span class="footer-num">16 / 25</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 15 — DECENTRALIZED STATE REPLICATION
+     SLIDE 17 — NATURAL REDUNDANCY + SNAP SYNC (EXPANDED)
      ============================================================ -->
-<section class="slide" data-slide="15">
+<section class="slide" data-slide="17">
     <div class="slide-content">
         <div class="eyebrow reveal">// THE VALUE</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">Natural</span> Redundancy</h2>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Natural</span> Redundancy<span class="cursor"></span></h2>
         <hr class="divider reveal reveal-d1">
         <div class="compare-rows reveal reveal-d2">
             <div class="compare-row">
@@ -1029,43 +1090,43 @@
             </div>
             <div class="compare-row">
                 <span class="compare-label">Post-ZKEVM</span>
-                <span class="compare-value">State held only by builders + RPC providers. Snap sync degrades.</span>
+                <span class="compare-value">State held by few operators. Snap sync hammers a handful of servers — fragile, rate-limited.</span>
             </div>
             <div class="compare-row">
                 <span class="compare-label" style="color: var(--green);">With PS</span>
-                <span class="compare-value">Thousands of specialized nodes, each holding their slice</span>
+                <span class="compare-value">Thousands of PS nodes serve snap sync ranges for tracked state. More peers, large distributed mesh.</span>
             </div>
         </div>
         <p class="body-text reveal reveal-d3" style="margin-top: clamp(0.5rem, 1vh, 0.8rem);">
-            PS achieves what state expiry promises — through <span class="g">market forces</span>, not protocol mandates. No protocol changes beyond BALs. Users never experience "account expired."
+            PS keeps <span class="g">snap sync viable</span> by distributing the serving load across a large mesh of specialized nodes, instead of concentrating it in a few overloaded operators. Market forces replace protocol mandates — no "account expired."
         </p>
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ state --replication-factor</span>
-        <span class="footer-num">15 / 22</span>
+        <span class="footer-num">17 / 25</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 16 — [DIAGRAM] REDUNDANCY GRADIENT
+     SLIDE 18 — [DIAGRAM] REDUNDANCY GRADIENT
      ============================================================ -->
-<section class="slide diagram-slide" data-slide="16">
+<section class="slide diagram-slide" data-slide="18">
     <div class="slide-content" style="align-items: center;">
         <img src="assets/redundancy-gradient.png" alt="Redundancy gradient: USDC replicated by thousands, cold state by few" class="diagram-img reveal">
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ state --redundancy-map</span>
-        <span class="footer-num">16 / 22</span>
+        <span class="footer-num">18 / 25</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 17 — VOPS: THE VALIDATOR FLOOR
+     SLIDE 19 — VOPS: THE VALIDATOR FLOOR
      ============================================================ -->
-<section class="slide" data-slide="17">
+<section class="slide" data-slide="19">
     <div class="slide-content" style="align-items: center; text-align: center;">
         <div class="eyebrow reveal">// VOPS</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">The Validator</span> Floor</h2>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">The Validator</span> Floor<span class="cursor"></span></h2>
         <hr class="divider reveal reveal-d1" style="max-width: 180px; margin: 0 auto;">
         <div class="big-stat reveal reveal-d2">8.4 GB</div>
         <p class="body-text reveal reveal-d3" style="max-width: 600px; text-align: center;">
@@ -1081,17 +1142,31 @@
     <span class="footer-source">Source: ethresear.ch — VOPS post (241M accounts × ~40 bytes)</span>
     <div class="slide-footer">
         <span class="footer-cmd">$ vops --min-requirements</span>
-        <span class="footer-num">17 / 22</span>
+        <span class="footer-num">19 / 25</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 18 — AA VS STATELESSNESS
+     SLIDE 20 — [SECTION TITLE] OPEN QUESTIONS
      ============================================================ -->
-<section class="slide" data-slide="18">
+<section class="slide section-title-slide" data-slide="20">
+    <div class="slide-content">
+        <div class="eyebrow reveal" style="font-size: clamp(1rem, 1.5vw, 1.3rem);">// OPEN QUESTIONS</div>
+        <h1 class="hero-title reveal reveal-d1">The Design Space<span class="cursor"></span></h1>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ research --open-questions</span>
+        <span class="footer-num">20 / 25</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 21 — AA VS STATELESSNESS
+     ============================================================ -->
+<section class="slide" data-slide="21">
     <div class="slide-content">
         <div class="eyebrow reveal">// OPEN QUESTION</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">Account Abstraction</span> vs Statelessness</h2>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Account Abstraction</span> vs Statelessness<span class="cursor"></span></h2>
         <hr class="divider reveal reveal-d1">
         <p class="body-text reveal reveal-d2">
             Statelessness wants minimal state for validation. AA wants programmable validation with arbitrary state access. These pull in <strong>opposite directions</strong>.
@@ -1105,30 +1180,30 @@
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ mempool --validate-tx --state-required ?</span>
-        <span class="footer-num">18 / 22</span>
+        <span class="footer-num">21 / 25</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 19 — [DIAGRAM] VALIDATION SPECTRUM
+     SLIDE 22 — [DIAGRAM] VALIDATION SPECTRUM
      ============================================================ -->
-<section class="slide diagram-slide" data-slide="19">
+<section class="slide diagram-slide" data-slide="22">
     <div class="slide-content" style="align-items: center;">
         <img src="assets/validation-spectrum.png" alt="Validation spectrum: Schemed Tx (stateless, PS compatible) to Frame Tx (stateful, needs witnesses)" class="diagram-img reveal">
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ aa --compatibility-check</span>
-        <span class="footer-num">19 / 22</span>
+        <span class="footer-num">22 / 25</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 20 — THE INSEPARABLE GRAPH
+     SLIDE 23 — THE INSEPARABLE GRAPH
      ============================================================ -->
-<section class="slide" data-slide="20">
+<section class="slide" data-slide="23">
     <div class="slide-content">
         <div class="eyebrow reveal">// HONEST CRITIQUE</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">The Inseparable</span> Graph</h2>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">The Inseparable</span> Graph<span class="cursor"></span></h2>
         <hr class="divider reveal reveal-d1">
         <p class="body-text reveal reveal-d2">
             A fair critique: DeFi state is deeply interconnected. Serve USDC → need DEX pools → need routers → the closure is "most of DeFi."
@@ -1158,45 +1233,30 @@
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ state --graph-closure USDC</span>
-        <span class="footer-num">20 / 22</span>
+        <span class="footer-num">23 / 25</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 21 — IMPLEMENTATION
+     SLIDE 24 — IMPLEMENTATION
      ============================================================ -->
-<section class="slide" data-slide="21">
+<section class="slide" data-slide="24">
     <div class="slide-content">
         <div class="eyebrow reveal">// ALREADY REAL</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">Already</span> Shipping</h2>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Already</span> Shipping<span class="cursor"></span></h2>
         <hr class="divider reveal reveal-d1">
         <div class="code-block reveal reveal-d2"><span class="comment"># Run a partial stateful node</span>
 <span class="cmd">geth</span> <span class="flag">--partial-state</span> \
      <span class="flag">--partial-state.contracts</span> 0xA0b8...USDC,0x6B17...DAI \
      <span class="flag">--partial-state.chain-retention</span> 1024</div>
         <div class="stat-row cols-2 reveal reveal-d3">
-            <div class="stat">
-                <div class="stat-num">59 GB</div>
-                <div class="stat-label">Mainnet (USDC + DAI)</div>
-            </div>
-            <div class="stat">
-                <div class="stat-num">79%</div>
-                <div class="stat-label">vs full state</div>
-            </div>
+            <div class="stat"><div class="stat-num">59 GB</div><div class="stat-label">Mainnet (USDC + DAI)</div></div>
+            <div class="stat"><div class="stat-num">79%</div><div class="stat-label">vs full state</div></div>
         </div>
         <div class="roadmap reveal reveal-d4">
-            <div class="roadmap-item">
-                <div class="roadmap-date">Glamsterdam '26</div>
-                <div class="roadmap-desc">BALs land — PS becomes possible</div>
-            </div>
-            <div class="roadmap-item">
-                <div class="roadmap-date">Hegota '26</div>
-                <div class="roadmap-desc">AA decision impacts PS compatibility</div>
-            </div>
-            <div class="roadmap-item">
-                <div class="roadmap-date">Next forks</div>
-                <div class="roadmap-desc">ZKEVMs — PS becomes essential</div>
-            </div>
+            <div class="roadmap-item"><div class="roadmap-date">Glamsterdam '26</div><div class="roadmap-desc">BALs land — PS becomes possible</div></div>
+            <div class="roadmap-item"><div class="roadmap-date">Hegota '26</div><div class="roadmap-desc">AA decision impacts PS compatibility</div></div>
+            <div class="roadmap-item"><div class="roadmap-date">Next forks</div><div class="roadmap-desc">ZKEVMs — PS becomes essential</div></div>
         </div>
         <p class="body-text reveal reveal-d5" style="margin-top: clamp(0.3rem, 0.8vh, 0.5rem); font-size: var(--small-size); color: var(--text-muted);">
             go-ethereum PR #33764 — only geth for now. Opportunity for other clients.
@@ -1205,14 +1265,14 @@
     <span class="footer-source">Source: github.com/ethereum/go-ethereum/pull/33764</span>
     <div class="slide-footer">
         <span class="footer-cmd">$ git log --oneline ethereum/go-ethereum#33764</span>
-        <span class="footer-num">21 / 22</span>
+        <span class="footer-num">24 / 25</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 22 — CTA + CREDITS
+     SLIDE 25 — CTA + CREDITS
      ============================================================ -->
-<section class="slide" data-slide="22">
+<section class="slide" data-slide="25">
     <div class="slide-content" style="align-items: center; text-align: center;">
         <div class="closing-title reveal">
             <span class="g">Try it.</span> <span class="w">Break it.</span> <span class="g">Tell us.</span><span class="cursor"></span>
@@ -1231,7 +1291,7 @@
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ exit 0</span>
-        <span class="footer-num">22 / 22</span>
+        <span class="footer-num">25 / 25</span>
     </div>
 </section>
 
