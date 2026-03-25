@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Partial Statefulness — EthCC 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* === RESET & BASE === */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --bg: #111111;
+    --bg-gradient: linear-gradient(160deg, #111111 0%, #1a1a1a 50%, #111111 100%);
+    --accent: #FF6B35;
+    --accent-glow: rgba(255, 107, 53, 0.3);
+    --text-primary: #ffffff;
+    --text-on-card: #111111;
+    --text-secondary: #888888;
+    --success: #4ade80;
+    --data-highlight: #fbbf24;
+    --font-display: 'Archivo Black', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+
+    --title-size: clamp(1.5rem, 5vw, 4rem);
+    --h2-size: clamp(1.25rem, 3.5vw, 2.5rem);
+    --h3-size: clamp(1rem, 2.5vw, 1.75rem);
+    --body-size: clamp(0.75rem, 1.5vw, 1.125rem);
+    --small-size: clamp(0.65rem, 1vw, 0.875rem);
+    --slide-padding: clamp(1rem, 4vw, 4rem);
+    --content-gap: clamp(0.5rem, 2vw, 2rem);
+    --element-gap: clamp(0.25rem, 1vw, 1rem);
+}
+
+html, body { height: 100%; overflow-x: hidden; }
+html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+
+body {
+    background: var(--bg-gradient);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* === SLIDE LAYOUT === */
+.slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.slide-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-height: 100%;
+    overflow: hidden;
+    padding: var(--slide-padding);
+}
+
+.card, .container, .content-box {
+    max-width: min(90vw, 1000px);
+    max-height: min(80vh, 700px);
+}
+
+.feature-list, .bullet-list { gap: clamp(0.4rem, 1vh, 1rem); }
+.feature-list li, .bullet-list li { font-size: var(--body-size); line-height: 1.4; }
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+}
+
+img, .image-container { max-width: 100%; max-height: min(50vh, 400px); object-fit: contain; }
+
+/* === RESPONSIVE === */
+@media (max-height: 700px) {
+    :root {
+        --slide-padding: clamp(0.75rem, 3vw, 2rem);
+        --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+        --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+        --h2-size: clamp(1rem, 3vw, 1.75rem);
+    }
+}
+@media (max-height: 600px) {
+    :root {
+        --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+        --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+        --title-size: clamp(1.1rem, 4vw, 2rem);
+        --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+    }
+    .nav-dots, .keyboard-hint, .decorative { display: none; }
+}
+@media (max-height: 500px) {
+    :root {
+        --slide-padding: clamp(0.4rem, 2vw, 1rem);
+        --title-size: clamp(1rem, 3.5vw, 1.5rem);
+        --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+        --body-size: clamp(0.65rem, 1vw, 0.85rem);
+    }
+}
+@media (max-width: 600px) {
+    :root { --title-size: clamp(1.25rem, 7vw, 2.5rem); }
+    .grid { grid-template-columns: 1fr; }
+    .two-col { grid-template-columns: 1fr !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+    html { scroll-behavior: auto; }
+}
+
+/* === TYPOGRAPHY === */
+h1, h2, h3 { font-family: var(--font-display); font-weight: 900; line-height: 1.1; }
+h1 { font-size: var(--title-size); }
+h2 { font-size: var(--h2-size); }
+h3 { font-size: var(--h3-size); }
+p, li { font-size: var(--body-size); line-height: 1.5; }
+.small { font-size: var(--small-size); }
+code, .mono { font-family: var(--font-mono); }
+
+/* === SECTION NUMBER === */
+.section-number {
+    position: absolute;
+    top: clamp(0.5rem, 2vw, 1.5rem);
+    left: clamp(0.75rem, 3vw, 2rem);
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 6vw, 5rem);
+    color: rgba(255, 255, 255, 0.06);
+    line-height: 1;
+    z-index: 1;
+    user-select: none;
+}
+
+/* === BREADCRUMB NAV === */
+.breadcrumb {
+    position: absolute;
+    top: clamp(0.5rem, 2vw, 1.5rem);
+    right: clamp(0.75rem, 3vw, 2rem);
+    font-family: var(--font-body);
+    font-size: var(--small-size);
+    font-weight: 500;
+    color: var(--text-secondary);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+.breadcrumb .active { color: var(--accent); }
+.breadcrumb .sep { opacity: 0.3; }
+
+/* === CARDS === */
+.accent-card {
+    background: var(--accent);
+    color: var(--text-on-card);
+    border-radius: 16px;
+    padding: clamp(1rem, 3vw, 2.5rem);
+    position: relative;
+}
+.accent-card.glow {
+    box-shadow: 0 0 40px var(--accent-glow), 0 0 80px rgba(255, 107, 53, 0.1);
+    animation: cardGlow 3s ease-in-out infinite alternate;
+}
+@keyframes cardGlow {
+    0% { box-shadow: 0 0 30px var(--accent-glow), 0 0 60px rgba(255, 107, 53, 0.08); }
+    100% { box-shadow: 0 0 50px var(--accent-glow), 0 0 100px rgba(255, 107, 53, 0.15); }
+}
+
+.dark-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: clamp(0.75rem, 2vw, 1.5rem);
+}
+
+/* === HR SEPARATOR === */
+.separator {
+    border: none;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    margin: var(--element-gap) 0;
+}
+
+/* === PILLS / TAGS === */
+.pill {
+    display: inline-block;
+    padding: 0.25em 0.75em;
+    border-radius: 100px;
+    font-size: var(--small-size);
+    font-weight: 500;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--text-secondary);
+}
+.pill.accent {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+/* === STAT HERO === */
+.stat-hero {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 8vw, 6rem);
+    line-height: 1;
+    color: var(--accent);
+}
+.stat-label {
+    font-size: var(--body-size);
+    color: var(--text-secondary);
+    margin-top: 0.25em;
+}
+
+/* === CODE BLOCK === */
+.code-block {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: clamp(0.75rem, 2vw, 1.5rem);
+    font-family: var(--font-mono);
+    font-size: var(--small-size);
+    line-height: 1.6;
+    color: var(--success);
+    overflow-x: auto;
+    white-space: pre;
+}
+
+/* === IMAGE PLACEHOLDER === */
+.image-placeholder {
+    border: 2px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: var(--small-size);
+    font-family: var(--font-mono);
+    padding: 1rem;
+    min-height: 80px;
+    max-height: min(30vh, 200px);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* === TWO COLUMN === */
+.two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(0.75rem, 2vw, 2rem);
+    align-items: start;
+}
+
+/* === THREE COLUMN === */
+.three-col {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(0.5rem, 1.5vw, 1.5rem);
+}
+@media (max-width: 700px) {
+    .three-col { grid-template-columns: 1fr; }
+}
+
+/* === PROGRESS BAR === */
+.progress-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: var(--accent);
+    z-index: 100;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+
+/* === NAV DOTS === */
+.nav-dots {
+    position: fixed;
+    right: clamp(0.5rem, 1.5vw, 1rem);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.nav-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    padding: 0;
+}
+.nav-dot.active {
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent-glow);
+    transform: scale(1.3);
+}
+
+/* === REVEAL ANIMATIONS === */
+.reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.reveal.from-left {
+    transform: translateX(-30px);
+}
+.reveal.scale-in {
+    transform: scale(0.95);
+}
+.visible .reveal {
+    opacity: 1;
+    transform: translateY(0) translateX(0) scale(1);
+}
+.visible .reveal.d1 { transition-delay: 0.1s; }
+.visible .reveal.d2 { transition-delay: 0.2s; }
+.visible .reveal.d3 { transition-delay: 0.3s; }
+.visible .reveal.d4 { transition-delay: 0.4s; }
+.visible .reveal.d5 { transition-delay: 0.5s; }
+.visible .reveal.d6 { transition-delay: 0.6s; }
+
+/* === TABLE === */
+.spec-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--small-size);
+}
+.spec-table th {
+    text-align: left;
+    padding: 0.5em 0.75em;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    color: var(--accent);
+    font-weight: 700;
+    font-size: var(--small-size);
+}
+.spec-table td {
+    padding: 0.4em 0.75em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+/* === MISC === */
+.text-accent { color: var(--accent); }
+.text-success { color: var(--success); }
+.text-amber { color: var(--data-highlight); }
+.text-secondary { color: var(--text-secondary); }
+.text-center { text-align: center; }
+.fw-700 { font-weight: 700; }
+.uppercase { text-transform: uppercase; letter-spacing: 0.08em; }
+.mt-auto { margin-top: auto; }
+.mb-half { margin-bottom: 0.5em; }
+
+.inline-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    list-style: none;
+}
+
+.bullet-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+}
+.bullet-list li { padding-left: 1.2em; position: relative; }
+.bullet-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.6em;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+}
+
+.step-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.3rem, 0.8vh, 0.75rem);
+    counter-reset: steps;
+}
+.step-list li {
+    counter-increment: steps;
+    padding-left: 2em;
+    position: relative;
+    font-size: var(--body-size);
+    line-height: 1.4;
+}
+.step-list li::before {
+    content: counter(steps);
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-family: var(--font-display);
+    font-size: var(--body-size);
+    color: var(--accent);
+    width: 1.5em;
+    text-align: center;
+}
+
+.keyboard-hint {
+    position: fixed;
+    bottom: 12px;
+    right: 20px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.15);
+    z-index: 99;
+    font-family: var(--font-mono);
+}
+</style>
+</head>
+<body>
+
+<!-- === PROGRESS BAR === -->
+<div class="progress-bar" id="progressBar" style="width: 0%"></div>
+
+<!-- === NAV DOTS === -->
+<nav class="nav-dots" id="navDots" aria-label="Slide navigation"></nav>
+
+<!-- === KEYBOARD HINT === -->
+<div class="keyboard-hint decorative" aria-hidden="true">Arrow keys / scroll to navigate</div>
+
+<!-- ============================================================ -->
+<!-- SLIDE 1 — TITLE                                              -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-1" data-section="">
+    <div class="slide-content" style="justify-content: center; align-items: center; text-align: center;">
+        <div>
+            <h1 class="reveal" style="font-size: clamp(2rem, 7vw, 5.5rem); margin-bottom: 0.2em;">Partial Statefulness</h1>
+            <p class="reveal d1" style="font-size: var(--h3-size); color: var(--text-secondary); margin-bottom: var(--content-gap);">Hold only the state you care about</p>
+            <hr class="separator reveal d2" style="max-width: 200px; margin: 0 auto var(--content-gap);">
+            <p class="reveal d3" style="font-size: var(--body-size); color: var(--text-secondary); margin-bottom: var(--element-gap);">CPerezz &amp; @DanGoron2</p>
+            <div class="reveal d4" style="display: flex; justify-content: center; gap: 0.5em; flex-wrap: wrap;">
+                <span class="pill accent">EthCC 2026</span>
+                <span class="pill">Ethereum Research</span>
+                <span class="pill">State Management</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 2 — THE CORE IDEA                                      -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-2" data-section="01 &mdash; CONCEPT">
+    <div class="section-number reveal from-left">01</div>
+    <div class="breadcrumb"><span class="active">01 CONCEPT</span></div>
+    <div class="slide-content">
+        <h2 class="reveal" style="margin-bottom: 0.15em;">The Core Idea</h2>
+        <p class="reveal d1 text-secondary" style="font-size: var(--h3-size); margin-bottom: var(--content-gap);">What if you could <span class="text-accent">choose</span> which parts of Ethereum's state to hold?</p>
+        <hr class="separator reveal d2">
+        <div class="three-col reveal d3" style="margin-top: var(--content-gap);">
+            <div class="dark-card">
+                <h3 style="font-size: var(--body-size); color: var(--accent); margin-bottom: 0.5em;">Full Account Trie</h3>
+                <p class="small text-secondary">Every account's balance, nonce, codeHash</p>
+            </div>
+            <div class="dark-card">
+                <h3 style="font-size: var(--body-size); color: var(--accent); margin-bottom: 0.5em;">Selective Storage</h3>
+                <p class="small text-secondary">Only the contracts you care about</p>
+            </div>
+            <div class="dark-card">
+                <h3 style="font-size: var(--body-size); color: var(--accent); margin-bottom: 0.5em;">No Re-execution</h3>
+                <p class="small text-secondary">Follow the chain via state diffs</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 3 — THE NUMBERS                                        -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-3" data-section="01 &mdash; CONCEPT">
+    <div class="section-number reveal from-left">01</div>
+    <div class="breadcrumb"><span class="active">01 CONCEPT</span></div>
+    <div class="slide-content" style="align-items: center; text-align: center;">
+        <h2 class="reveal" style="margin-bottom: var(--content-gap);">The Numbers</h2>
+        <div class="three-col reveal d1" style="width: 100%; max-width: 900px;">
+            <div class="dark-card" style="text-align: center;">
+                <div class="stat-hero countup" data-target="59" data-suffix=" GB">0</div>
+                <p class="stat-label">PS node on mainnet<br><span class="small">(USDC + DAI)</span></p>
+            </div>
+            <div class="dark-card" style="text-align: center;">
+                <div class="stat-hero countup" data-target="640" data-suffix=" GB" style="color: var(--text-secondary);">0</div>
+                <p class="stat-label">Full node state</p>
+            </div>
+            <div class="dark-card" style="text-align: center;">
+                <div class="stat-hero countup" data-target="83" data-suffix="%" style="color: var(--success);">0</div>
+                <p class="stat-label">Reduction</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 4 — SYNC, DON'T EXECUTE                                -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-4" data-section="02 &mdash; HOW IT WORKS">
+    <div class="section-number reveal from-left">02</div>
+    <div class="breadcrumb"><span>01 CONCEPT</span> <span class="sep">/</span> <span class="active">02 HOW IT WORKS</span></div>
+    <div class="slide-content">
+        <h2 class="reveal" style="margin-bottom: var(--content-gap);">Sync, Don't Execute</h2>
+        <ol class="step-list reveal d1" style="margin-bottom: var(--content-gap);">
+            <li>Snap sync the full account trie <span class="text-secondary">(~50 GB)</span></li>
+            <li>Snap sync selected contract storage tries <span class="text-secondary">(~9 GB for USDC + DAI)</span></li>
+            <li>Process Block Access Lists from pivot to HEAD</li>
+            <li>Follow tip: apply BAL diffs per block. <span class="text-accent">No transaction re-execution.</span></li>
+        </ol>
+        <div class="dark-card reveal d2" style="border-left: 3px solid var(--accent);">
+            <p class="small"><strong class="text-accent">BALs (EIP-7928)</strong> record ALL state changes per block &mdash; consensus-enforced completeness</p>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 5 — PROVE WHAT YOU HOLD                                -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-5" data-section="02 &mdash; HOW IT WORKS">
+    <div class="section-number reveal from-left">02</div>
+    <div class="breadcrumb"><span>01 CONCEPT</span> <span class="sep">/</span> <span class="active">02 HOW IT WORKS</span></div>
+    <div class="slide-content">
+        <h2 class="reveal" style="margin-bottom: var(--element-gap);">Prove What You Hold</h2>
+        <p class="reveal d1 text-secondary" style="margin-bottom: var(--content-gap); font-size: var(--body-size);">The proof path:</p>
+        <div class="code-block reveal d2" style="margin-bottom: var(--content-gap); font-size: var(--small-size);">storage slot &rarr; storage trie &rarr; storage root &rarr; account leaf &rarr; account trie &rarr; state root</div>
+        <p class="reveal d3" style="margin-bottom: var(--content-gap);">A PS node produces full Merkle proofs for tracked contracts. <span class="text-accent">Cryptographic certainty, not trust.</span></p>
+        <div class="image-placeholder reveal d4" style="max-width: 600px;">
+            [IMAGE: mpt-proof-path.png]
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 6 — BUT WHY?                                           -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-6" data-section="03 &mdash; THE PROBLEM">
+    <div class="section-number reveal from-left">03</div>
+    <div class="breadcrumb"><span>01</span> <span class="sep">/</span> <span>02</span> <span class="sep">/</span> <span class="active">03 THE PROBLEM</span></div>
+    <div class="slide-content" style="align-items: center; justify-content: center;">
+        <div class="accent-card glow reveal scale-in" style="max-width: 800px; text-align: center;">
+            <h2 style="margin-bottom: 0.5em; color: var(--text-on-card);">But Why?</h2>
+            <p style="font-size: var(--body-size); color: var(--text-on-card); margin-bottom: 0.75em; font-weight: 500;">ZKEVMs are coming. Validators will verify blocks with a SNARK &mdash; in milliseconds, without state.</p>
+            <hr style="border: none; height: 1px; background: rgba(0,0,0,0.15); margin: 0.75em 0;">
+            <p style="font-size: var(--h3-size); font-family: var(--font-display); color: var(--text-on-card);">If verification doesn't need state&hellip; who holds it?</p>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 7 — THE STATE COLLAPSE                                 -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-7" data-section="03 &mdash; THE PROBLEM">
+    <div class="section-number reveal from-left">03</div>
+    <div class="breadcrumb"><span>01</span> <span class="sep">/</span> <span>02</span> <span class="sep">/</span> <span class="active">03 THE PROBLEM</span></div>
+    <div class="slide-content">
+        <h2 class="reveal" style="margin-bottom: var(--content-gap);">The State Collapse</h2>
+        <div class="two-col reveal d1">
+            <div class="dark-card" style="border-left: 3px solid var(--success);">
+                <h3 style="font-size: var(--body-size); color: var(--success); margin-bottom: 0.5em;">Today</h3>
+                <ul class="bullet-list" style="gap: 0.3rem;">
+                    <li style="font-size: var(--small-size);">10,000+ validators</li>
+                    <li style="font-size: var(--small-size);">Each holding 640 GB</li>
+                    <li style="font-size: var(--small-size);">Globally distributed</li>
+                    <li style="font-size: var(--small-size);">Censorship-resistant</li>
+                </ul>
+            </div>
+            <div class="dark-card" style="border-left: 3px solid var(--accent);">
+                <h3 style="font-size: var(--body-size); color: var(--accent); margin-bottom: 0.5em;">Post-ZKEVM</h3>
+                <ul class="bullet-list" style="gap: 0.3rem;">
+                    <li style="font-size: var(--small-size);">~50 operators</li>
+                    <li style="font-size: var(--small-size);">Builders + RPC providers only</li>
+                    <li style="font-size: var(--small-size);">State = centralized</li>
+                    <li style="font-size: var(--small-size);">Censorship = easy</li>
+                </ul>
+            </div>
+        </div>
+        <div class="image-placeholder reveal d2" style="margin-top: var(--content-gap); max-width: 600px;">
+            [IMAGE: state-collapse.png]
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 8 — STATE EXPIRY? NO.                                  -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-8" data-section="03 &mdash; THE PROBLEM">
+    <div class="section-number reveal from-left">03</div>
+    <div class="breadcrumb"><span>01</span> <span class="sep">/</span> <span>02</span> <span class="sep">/</span> <span class="active">03 THE PROBLEM</span></div>
+    <div class="slide-content">
+        <h2 class="reveal" style="margin-bottom: var(--content-gap);">State Expiry? No.</h2>
+        <div class="three-col reveal d1" style="margin-bottom: var(--content-gap);">
+            <div class="dark-card">
+                <h3 style="font-size: var(--body-size); color: var(--accent); margin-bottom: 0.4em;">UX</h3>
+                <p class="small text-secondary">Accounts "expire" after inactivity</p>
+            </div>
+            <div class="dark-card">
+                <h3 style="font-size: var(--body-size); color: var(--accent); margin-bottom: 0.4em;">Complexity</h3>
+                <p class="small text-secondary">Address space extension, resurrection mechanics</p>
+            </div>
+            <div class="dark-card">
+                <h3 style="font-size: var(--body-size); color: var(--accent); margin-bottom: 0.4em;">Futility</h3>
+                <p class="small text-secondary">Wallets still need expired state from the same centralized providers</p>
+            </div>
+        </div>
+        <div class="dark-card reveal d2" style="border-left: 3px solid var(--accent); max-width: 700px;">
+            <p style="font-size: var(--body-size);"><span class="text-accent fw-700">PS achieves what state expiry promises</span> &mdash; without touching the protocol</p>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 9 — INCLUSION LISTS NEED STATE                         -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-9" data-section="04 &mdash; WHAT PS ENABLES">
+    <div class="section-number reveal from-left">04</div>
+    <div class="breadcrumb"><span>01</span> <span class="sep">/</span> <span>02</span> <span class="sep">/</span> <span>03</span> <span class="sep">/</span> <span class="active">04 ENABLES</span></div>
+    <div class="slide-content">
+        <h2 class="reveal" style="margin-bottom: var(--content-gap);">Inclusion Lists Need State</h2>
+        <ul class="bullet-list reveal d1" style="margin-bottom: var(--content-gap); gap: clamp(0.3rem, 0.8vh, 0.6rem);">
+            <li><strong class="text-accent">FOCIL (EIP-7805)</strong>: 16 includers per slot</li>
+            <li>Includers select transactions from the mempool</li>
+            <li>Valid txs = harder for builders to exclude</li>
+            <li>Account data makes includers <strong>EFFECTIVE</strong></li>
+            <li>PS drops hardware from <span class="text-amber fw-700">640 GB</span> to <span class="text-success fw-700">50&ndash;80 GB</span></li>
+        </ul>
+        <div class="dark-card reveal d2" style="border-left: 3px solid var(--accent); max-width: 750px;">
+            <p class="small">Without PS in a post-ZKEVM world, <span class="text-accent fw-700">only builders and RPC providers</span> can be effective includers</p>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 10 — STATE MARKETS                                     -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-10" data-section="04 &mdash; WHAT PS ENABLES">
+    <div class="section-number reveal from-left">04</div>
+    <div class="breadcrumb"><span>01</span> <span class="sep">/</span> <span>02</span> <span class="sep">/</span> <span>03</span> <span class="sep">/</span> <span class="active">04 ENABLES</span></div>
+    <div class="slide-content" style="align-items: center;">
+        <div class="accent-card glow reveal scale-in" style="max-width: 800px; margin-bottom: var(--content-gap);">
+            <h2 style="color: var(--text-on-card); margin-bottom: 0.5em;">State Markets</h2>
+            <p style="font-size: var(--h3-size); font-family: var(--font-display); color: var(--text-on-card); margin-bottom: 0.5em;">PS creates a natural market for state serving</p>
+        </div>
+        <ul class="bullet-list reveal d1" style="gap: clamp(0.3rem, 0.8vh, 0.6rem); max-width: 700px;">
+            <li>Load balancers route queries to specialized PS nodes</li>
+            <li><span class="text-success">Hot state = cheap</span> (many holders). <span class="text-accent">Cold state = premium.</span></li>
+            <li>The attestation analogy: one query = nothing. Millions/year = real revenue.</li>
+        </ul>
+        <div class="image-placeholder reveal d2" style="margin-top: var(--element-gap); max-width: 500px;">
+            [IMAGE: state-market-flywheel.png]
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 11 — VOPS: THE VALIDATOR FLOOR                         -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-11" data-section="04 &mdash; WHAT PS ENABLES">
+    <div class="section-number reveal from-left">04</div>
+    <div class="breadcrumb"><span>01</span> <span class="sep">/</span> <span>02</span> <span class="sep">/</span> <span>03</span> <span class="sep">/</span> <span class="active">04 ENABLES</span></div>
+    <div class="slide-content" style="align-items: center; text-align: center;">
+        <div class="reveal">
+            <div class="stat-hero countup" data-target="8.4" data-suffix=" GB" data-decimals="1">0</div>
+            <p class="stat-label" style="margin-bottom: var(--content-gap);">Validity-Only Partial Statefulness &mdash; the minimum to stay useful</p>
+        </div>
+        <hr class="separator reveal d1" style="max-width: 400px; margin: 0 auto var(--content-gap);">
+        <div class="three-col reveal d2" style="max-width: 800px; text-align: left;">
+            <div class="dark-card">
+                <p class="small"><strong class="text-accent">4 fields per account:</strong><br>address, nonce, balance, codeFlag</p>
+            </div>
+            <div class="dark-card">
+                <p class="small"><strong class="text-accent">Enables:</strong><br>mempool mgmt + FOCIL + SNARK verification</p>
+            </div>
+            <div class="dark-card">
+                <p class="small"><strong class="text-accent">Post-ZKEVM:</strong><br>this is the cost of being a real validator</p>
+            </div>
+        </div>
+        <p class="reveal d3 small text-secondary" style="margin-top: var(--element-gap);">Any PS node is automatically a VOPS node</p>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 12 — DECENTRALIZED STATE                               -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-12" data-section="04 &mdash; WHAT PS ENABLES">
+    <div class="section-number reveal from-left">04</div>
+    <div class="breadcrumb"><span>01</span> <span class="sep">/</span> <span>02</span> <span class="sep">/</span> <span>03</span> <span class="sep">/</span> <span class="active">04 ENABLES</span></div>
+    <div class="slide-content">
+        <h2 class="reveal" style="margin-bottom: var(--content-gap);">Decentralized State</h2>
+        <p class="reveal d1 text-secondary" style="margin-bottom: var(--content-gap);">Natural redundancy gradient:</p>
+        <div class="reveal d2" style="display: flex; flex-direction: column; gap: var(--element-gap); max-width: 700px;">
+            <div style="display: flex; align-items: center; gap: 1em;">
+                <span class="mono small text-accent" style="min-width: 120px;">USDC</span>
+                <div style="flex: 1; height: 20px; background: var(--accent); border-radius: 10px; opacity: 0.9;"></div>
+                <span class="small text-secondary">Thousands</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 1em;">
+                <span class="mono small text-accent" style="min-width: 120px;">Major DeFi</span>
+                <div style="flex: 1; height: 20px; background: var(--accent); border-radius: 10px; opacity: 0.6; max-width: 70%;"></div>
+                <span class="small text-secondary">Hundreds</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 1em;">
+                <span class="mono small text-accent" style="min-width: 120px;">ENS</span>
+                <div style="flex: 1; height: 20px; background: var(--accent); border-radius: 10px; opacity: 0.35; max-width: 35%;"></div>
+                <span class="small text-secondary">Dozens</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 1em;">
+                <span class="mono small text-accent" style="min-width: 120px;">Obscure</span>
+                <div style="flex: 1; height: 20px; background: var(--accent); border-radius: 10px; opacity: 0.15; max-width: 12%;"></div>
+                <span class="small text-secondary">A few</span>
+            </div>
+        </div>
+        <div class="dark-card reveal d3" style="border-left: 3px solid var(--accent); margin-top: var(--content-gap); max-width: 700px;">
+            <p class="small"><span class="text-accent fw-700">PS replaces state expiry through market forces</span>, not protocol mandates</p>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 13 — TRUST, NOT SCALE                                  -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-13" data-section="05 &mdash; AI AGENTS">
+    <div class="section-number reveal from-left">05</div>
+    <div class="breadcrumb"><span>01</span> <span class="sep">/</span> <span>02</span> <span class="sep">/</span> <span>03</span> <span class="sep">/</span> <span>04</span> <span class="sep">/</span> <span class="active">05 AI AGENTS</span></div>
+    <div class="slide-content">
+        <h2 class="reveal" style="margin-bottom: 0.25em;">Trust, Not Scale</h2>
+        <p class="reveal d1 text-secondary" style="margin-bottom: var(--content-gap); font-size: var(--body-size);">AI agents are the first class of Ethereum users that are both <span class="text-accent">autonomous</span> and <span class="text-accent">trust-sensitive</span></p>
+        <ul class="bullet-list reveal d2" style="gap: clamp(0.25rem, 0.6vh, 0.5rem); margin-bottom: var(--content-gap);">
+            <li>Can't trust centralized RPC (just as DeFi doesn't trust off-chain oracles)</li>
+            <li>PS nodes serve <strong class="text-accent">proof-carrying responses</strong> &mdash; verifiable by anyone</li>
+            <li>Domain specialization: DeFi agent &harr; DeFi PS node</li>
+        </ul>
+        <div class="three-col reveal d3" style="margin-bottom: var(--element-gap);">
+            <div class="dark-card" style="text-align: center;">
+                <div style="font-family: var(--font-display); font-size: clamp(1.2rem, 3vw, 2rem); color: var(--data-highlight);" class="countup" data-target="40" data-suffix="M+">0</div>
+                <p class="small text-secondary">Smart accounts</p>
+            </div>
+            <div class="dark-card" style="text-align: center;">
+                <div style="font-family: var(--font-display); font-size: clamp(1.2rem, 3vw, 2rem); color: var(--data-highlight);" class="countup" data-target="162" data-suffix="M">0</div>
+                <p class="small text-secondary">Machine-to-machine txs</p>
+            </div>
+            <div class="dark-card" style="text-align: center;">
+                <div style="font-family: var(--font-display); font-size: clamp(1.2rem, 3vw, 2rem); color: var(--data-highlight);" class="countup" data-target="15800" data-suffix="+">0</div>
+                <p class="small text-secondary">Agent projects</p>
+            </div>
+        </div>
+        <p class="reveal d4 small text-secondary">The ZKEVM transition creates the need. Agents are the natural consumer.</p>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 14 — AA VS STATELESSNESS                               -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-14" data-section="06 &mdash; OPEN QUESTIONS">
+    <div class="section-number reveal from-left">06</div>
+    <div class="breadcrumb"><span>01</span> <span class="sep">/</span> <span>&hellip;</span> <span class="sep">/</span> <span class="active">06 OPEN QUESTIONS</span></div>
+    <div class="slide-content">
+        <h2 class="reveal" style="margin-bottom: var(--content-gap);">AA vs Statelessness</h2>
+        <p class="reveal d1 text-secondary small" style="margin-bottom: var(--element-gap);">The Validation Spectrum</p>
+        <div class="reveal d2" style="overflow-x: auto; margin-bottom: var(--content-gap);">
+            <table class="spec-table">
+                <thead>
+                    <tr><th>Type</th><th>State Needed</th><th>PS Compat</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Schemed Tx</td><td class="text-success">Zero state</td><td class="text-success">Fully compatible</td></tr>
+                    <tr><td>EIP-7702</td><td class="text-amber">Account data</td><td class="text-success">Compatible</td></tr>
+                    <tr><td>ERC-4337</td><td class="text-accent">Alt-mempool</td><td class="text-secondary">Separated</td></tr>
+                    <tr><td>Frame Tx</td><td style="color: #f87171;">Arbitrary EVM</td><td style="color: #f87171;">Needs witnesses</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="dark-card reveal d3" style="border-left: 3px solid var(--accent); max-width: 700px;">
+            <p class="small"><span class="text-accent fw-700">PS determines which forms of AA are viable</span> without centralizing the mempool</p>
+        </div>
+        <div class="image-placeholder reveal d4" style="margin-top: var(--element-gap); max-width: 500px;">
+            [IMAGE: validation-spectrum.png]
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 15 — THE GRAPH CRITIQUE                                -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-15" data-section="06 &mdash; OPEN QUESTIONS">
+    <div class="section-number reveal from-left">06</div>
+    <div class="breadcrumb"><span>01</span> <span class="sep">/</span> <span>&hellip;</span> <span class="sep">/</span> <span class="active">06 OPEN QUESTIONS</span></div>
+    <div class="slide-content">
+        <h2 class="reveal" style="margin-bottom: var(--element-gap);">The Graph Critique</h2>
+        <p class="reveal d1 text-secondary" style="margin-bottom: var(--content-gap); font-size: var(--body-size);">"Serve USDC &rarr; need DEX pools &rarr; need routers &rarr; the closure is most of DeFi"</p>
+        <div class="two-col reveal d2" style="margin-bottom: var(--content-gap);">
+            <div class="dark-card" style="border-left: 3px solid var(--accent);">
+                <h3 style="font-size: var(--body-size); color: var(--accent); margin-bottom: 0.4em;">When valid</h3>
+                <ul class="bullet-list" style="gap: 0.25rem;">
+                    <li class="small">Aggregators</li>
+                    <li class="small">MEV searchers</li>
+                </ul>
+            </div>
+            <div class="dark-card" style="border-left: 3px solid var(--success);">
+                <h3 style="font-size: var(--body-size); color: var(--success); margin-bottom: 0.4em;">When NOT</h3>
+                <ul class="bullet-list" style="gap: 0.25rem;">
+                    <li class="small">VOPS validators</li>
+                    <li class="small">ENS resolution</li>
+                    <li class="small">Privacy protocols</li>
+                    <li class="small">Simple balance queries</li>
+                </ul>
+            </div>
+        </div>
+        <div class="dark-card reveal d3" style="border-left: 3px solid var(--accent); max-width: 700px;">
+            <p class="small">PS nodes don't serve everything. They serve one piece. <span class="text-accent">Proofs batch across nodes sharing the same root.</span></p>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 16 — ALREADY SHIPPING                                  -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-16" data-section="07 &mdash; IMPLEMENTATION">
+    <div class="section-number reveal from-left">07</div>
+    <div class="breadcrumb"><span>01</span> <span class="sep">/</span> <span>&hellip;</span> <span class="sep">/</span> <span class="active">07 IMPLEMENTATION</span></div>
+    <div class="slide-content">
+        <h2 class="reveal" style="margin-bottom: 0.2em;">Already Shipping</h2>
+        <p class="reveal d1 text-secondary small" style="margin-bottom: var(--element-gap);">geth PR #33764 &mdash; mainnet tested</p>
+        <div class="code-block reveal d2" style="margin-bottom: var(--content-gap); max-width: 650px;">geth --partial-state \
+     --partial-state.contracts 0xA0b8...USDC,0x6B17...DAI</div>
+        <div class="reveal d3">
+            <p class="small uppercase text-secondary fw-700" style="margin-bottom: var(--element-gap);">Timeline</p>
+            <div style="display: flex; flex-direction: column; gap: clamp(0.2rem, 0.5vh, 0.4rem); max-width: 600px;">
+                <div style="display: flex; align-items: baseline; gap: 0.75em;">
+                    <span class="mono small text-accent fw-700" style="min-width: 140px;">Glamsterdam 2026</span>
+                    <span class="small text-secondary">BALs land &rarr; PS becomes possible</span>
+                </div>
+                <div style="display: flex; align-items: baseline; gap: 0.75em;">
+                    <span class="mono small text-amber fw-700" style="min-width: 140px;">Hegota 2026</span>
+                    <span class="small text-secondary">AA decision impacts PS compatibility</span>
+                </div>
+                <div style="display: flex; align-items: baseline; gap: 0.75em;">
+                    <span class="mono small text-success fw-700" style="min-width: 140px;">Next forks ~2027+</span>
+                    <span class="small text-secondary">ZKEVMs &rarr; PS becomes essential</span>
+                </div>
+            </div>
+        </div>
+        <div class="image-placeholder reveal d4" style="margin-top: var(--element-gap); max-width: 500px;">
+            [IMAGE: geth-ps-screenshot.png]
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 17 — CLOSING                                           -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-17" data-section="">
+    <div class="slide-content" style="align-items: center; justify-content: center;">
+        <div class="accent-card glow reveal scale-in" style="max-width: 800px; text-align: center; margin-bottom: var(--content-gap);">
+            <h2 style="color: var(--text-on-card); font-size: var(--h2-size); margin-bottom: 0.3em;">Hold only the state you care about.</h2>
+            <p style="font-size: var(--h3-size); font-family: var(--font-display); color: var(--text-on-card);">Serve it. Prove it. Get paid.</p>
+        </div>
+        <div class="three-col reveal d1" style="max-width: 850px; margin-bottom: var(--content-gap);" role="list">
+            <div class="dark-card" style="text-align: center;">
+                <p class="small"><strong class="text-accent">83%</strong> state reduction<br>59 GB to run a useful node</p>
+            </div>
+            <div class="dark-card" style="text-align: center;">
+                <p class="small"><strong class="text-success">Censorship resistance</strong><br>FOCIL + PS preserved</p>
+            </div>
+            <div class="dark-card" style="text-align: center;">
+                <p class="small"><strong class="text-amber">State markets</strong><br>Hot/cold pricing, specialization</p>
+            </div>
+        </div>
+        <div class="reveal d2" style="text-align: center;">
+            <p class="small text-accent fw-700" style="margin-bottom: 0.3em;">Try it after Glamsterdam</p>
+            <hr class="separator" style="max-width: 200px; margin: 0.5em auto;">
+            <p class="small text-secondary" style="margin-bottom: 0.2em;">CPerezz &amp; @DanGoron2</p>
+            <p class="small text-secondary">geth PR #33764 &nbsp;|&nbsp; ethresear.ch VOPS post</p>
+        </div>
+    </div>
+</section>
+
+<!-- === JAVASCRIPT === -->
+<script>
+/* === SLIDE PRESENTATION CLASS === */
+class SlidePresentation {
+    constructor() {
+        this.slides = document.querySelectorAll('.slide');
+        this.totalSlides = this.slides.length;
+        this.currentSlide = 0;
+        this.isScrolling = false;
+        this.scrollTimeout = null;
+
+        this.initNavDots();
+        this.initObserver();
+        this.initKeyboard();
+        this.initTouch();
+        this.initWheel();
+        this.updateProgress();
+    }
+
+    /* --- NAV DOTS --- */
+    initNavDots() {
+        const container = document.getElementById('navDots');
+        this.slides.forEach((_, i) => {
+            const dot = document.createElement('button');
+            dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+            dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
+            dot.addEventListener('click', () => this.goToSlide(i));
+            container.appendChild(dot);
+        });
+        this.dots = container.querySelectorAll('.nav-dot');
+    }
+
+    /* --- INTERSECTION OBSERVER --- */
+    initObserver() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    const idx = Array.from(this.slides).indexOf(entry.target);
+                    if (idx !== -1) {
+                        this.currentSlide = idx;
+                        this.updateProgress();
+                        this.updateDots();
+                        this.triggerCountups(entry.target);
+                    }
+                }
+            });
+        }, { threshold: 0.5 });
+        this.slides.forEach(s => observer.observe(s));
+    }
+
+    /* --- KEYBOARD --- */
+    initKeyboard() {
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                this.goToSlide(Math.min(this.currentSlide + 1, this.totalSlides - 1));
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                e.preventDefault();
+                this.goToSlide(Math.max(this.currentSlide - 1, 0));
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                this.goToSlide(0);
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                this.goToSlide(this.totalSlides - 1);
+            }
+        });
+    }
+
+    /* --- TOUCH / SWIPE --- */
+    initTouch() {
+        let startY = 0;
+        let startX = 0;
+        document.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+            startX = e.touches[0].clientX;
+        }, { passive: true });
+        document.addEventListener('touchend', (e) => {
+            const dy = startY - e.changedTouches[0].clientY;
+            const dx = startX - e.changedTouches[0].clientX;
+            if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 50) {
+                if (dy > 0) this.goToSlide(Math.min(this.currentSlide + 1, this.totalSlides - 1));
+                else this.goToSlide(Math.max(this.currentSlide - 1, 0));
+            }
+        }, { passive: true });
+    }
+
+    /* --- WHEEL --- */
+    initWheel() {
+        document.addEventListener('wheel', (e) => {
+            if (this.isScrolling) return;
+            if (Math.abs(e.deltaY) < 30) return;
+            this.isScrolling = true;
+            if (e.deltaY > 0) this.goToSlide(Math.min(this.currentSlide + 1, this.totalSlides - 1));
+            else this.goToSlide(Math.max(this.currentSlide - 1, 0));
+            clearTimeout(this.scrollTimeout);
+            this.scrollTimeout = setTimeout(() => { this.isScrolling = false; }, 800);
+        }, { passive: true });
+    }
+
+    /* --- NAVIGATION --- */
+    goToSlide(idx) {
+        this.slides[idx].scrollIntoView({ behavior: 'smooth' });
+        this.currentSlide = idx;
+        this.updateProgress();
+        this.updateDots();
+    }
+
+    /* --- PROGRESS BAR --- */
+    updateProgress() {
+        const pct = ((this.currentSlide + 1) / this.totalSlides) * 100;
+        document.getElementById('progressBar').style.width = pct + '%';
+    }
+
+    /* --- NAV DOTS --- */
+    updateDots() {
+        if (!this.dots) return;
+        this.dots.forEach((d, i) => d.classList.toggle('active', i === this.currentSlide));
+    }
+
+    /* --- COUNTUP ANIMATION --- */
+    triggerCountups(slide) {
+        const els = slide.querySelectorAll('.countup:not(.counted)');
+        els.forEach(el => {
+            el.classList.add('counted');
+            const target = parseFloat(el.dataset.target);
+            const suffix = el.dataset.suffix || '';
+            const decimals = parseInt(el.dataset.decimals) || 0;
+            const duration = 1200;
+            const start = performance.now();
+
+            const animate = (now) => {
+                const elapsed = now - start;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                const current = eased * target;
+
+                if (decimals > 0) {
+                    el.textContent = current.toFixed(decimals) + suffix;
+                } else if (target >= 1000) {
+                    el.textContent = Math.round(current).toLocaleString() + suffix;
+                } else {
+                    el.textContent = Math.round(current) + suffix;
+                }
+
+                if (progress < 1) requestAnimationFrame(animate);
+            };
+            requestAnimationFrame(animate);
+        });
+    }
+}
+
+/* === INIT === */
+document.addEventListener('DOMContentLoaded', () => {
+    new SlidePresentation();
+});
+</script>
+</body>
+</html>

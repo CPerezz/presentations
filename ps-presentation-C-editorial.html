@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Future of Ethereum's State — Partial Statefulness</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,700;1,9..144,900&family=Work+Sans:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+/* === RESET & BASE === */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --bg: #faf8f4;
+    --text-primary: #1a1a1a;
+    --text-secondary: #555555;
+    --accent-crimson: #c41e3a;
+    --accent-warm: #e8d4c0;
+    --border: #d4d0c8;
+    --code-bg: #f0ece4;
+    --font-display: 'Fraunces', serif;
+    --font-body: 'Work Sans', sans-serif;
+    --title-size: clamp(1.5rem, 5vw, 4rem);
+    --h2-size: clamp(1.25rem, 3.5vw, 2.5rem);
+    --h3-size: clamp(1rem, 2.5vw, 1.75rem);
+    --body-size: clamp(0.75rem, 1.5vw, 1.125rem);
+    --small-size: clamp(0.65rem, 1vw, 0.875rem);
+    --slide-padding: clamp(1rem, 4vw, 4rem);
+    --content-gap: clamp(0.5rem, 2vw, 2rem);
+    --element-gap: clamp(0.25rem, 1vw, 1rem);
+}
+
+html, body { height: 100%; overflow-x: hidden; }
+html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+
+body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: var(--body-size);
+    line-height: 1.6;
+}
+
+/* === PAPER TEXTURE OVERLAY === */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 256px 256px;
+}
+
+/* === SLIDE SYSTEM === */
+.slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.slide-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-height: 100%;
+    overflow: hidden;
+    padding: var(--slide-padding);
+    padding-bottom: calc(var(--slide-padding) + 1.5rem);
+}
+
+.slide-inner {
+    max-width: min(90vw, 1000px);
+    max-height: min(85vh, 750px);
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* === TYPOGRAPHY === */
+h1, h2, h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--text-primary);
+}
+
+h1 { font-size: var(--title-size); font-weight: 900; }
+h2 { font-size: var(--h2-size); margin-bottom: var(--element-gap); }
+h3 { font-size: var(--h3-size); margin-bottom: var(--element-gap); }
+
+p { margin-bottom: var(--element-gap); line-height: 1.6; }
+
+/* === SECTION LABEL === */
+.section-label {
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: var(--small-size);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--accent-crimson);
+    margin-bottom: var(--element-gap);
+}
+
+/* === SLIDE COUNTER === */
+.slide-counter {
+    position: absolute;
+    bottom: clamp(0.5rem, 1.5vh, 1.5rem);
+    right: clamp(1rem, 3vw, 3rem);
+    font-family: var(--font-body);
+    font-size: var(--small-size);
+    color: var(--border);
+    letter-spacing: 0.05em;
+    z-index: 10;
+}
+
+.slide-counter .current { color: var(--text-secondary); }
+
+/* === PROGRESS BAR === */
+#progress-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: var(--accent-crimson);
+    width: 0%;
+    transition: width 0.4s ease;
+    z-index: 1000;
+}
+
+/* === HORIZONTAL RULE === */
+.elegant-hr {
+    border: none;
+    height: 1px;
+    background: var(--border);
+    margin: var(--element-gap) 0;
+    transform: scaleX(0);
+    transition: transform 1.2s ease;
+}
+
+.elegant-hr.revealed { transform: scaleX(1); }
+
+/* === PULL QUOTE === */
+.pull-quote {
+    border-left: 3px solid var(--accent-crimson);
+    padding: var(--element-gap) calc(var(--element-gap) * 1.5);
+    margin: var(--element-gap) 0;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 700;
+    font-size: clamp(0.85rem, 1.8vw, 1.35rem);
+    color: var(--text-primary);
+    opacity: 0;
+    transform: translateX(-10px);
+    border-left-color: transparent;
+    transition: opacity 0.8s ease 0.3s, transform 0.8s ease 0.3s, border-left-color 0.6s ease 0.8s;
+}
+
+.pull-quote.revealed {
+    opacity: 1;
+    transform: translateX(0);
+    border-left-color: var(--accent-crimson);
+}
+
+.pull-quote-large {
+    border-left: 4px solid var(--accent-crimson);
+    padding: clamp(1rem, 3vw, 2.5rem);
+    margin: var(--content-gap) auto;
+    max-width: min(85vw, 800px);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 900;
+    font-size: clamp(1rem, 2.5vw, 2rem);
+    line-height: 1.4;
+    color: var(--text-primary);
+    text-align: left;
+    opacity: 0;
+    transform: translateX(-15px);
+    border-left-color: transparent;
+    transition: opacity 1s ease 0.3s, transform 1s ease 0.3s, border-left-color 0.8s ease 1s;
+}
+
+.pull-quote-large.revealed {
+    opacity: 1;
+    transform: translateX(0);
+    border-left-color: var(--accent-crimson);
+}
+
+/* === DROP CAP === */
+.drop-cap::first-letter {
+    font-family: var(--font-display);
+    font-weight: 900;
+    float: left;
+    font-size: clamp(2rem, 5vw, 4rem);
+    line-height: 0.8;
+    margin-right: 0.1em;
+    margin-top: 0.05em;
+    color: var(--accent-crimson);
+}
+
+/* === BULLET LIST === */
+.bullet-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.4rem, 1vh, 1rem);
+    padding-left: 0;
+}
+
+.bullet-list li {
+    font-size: var(--body-size);
+    line-height: 1.4;
+    padding-left: 1.2em;
+    position: relative;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.bullet-list li.revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.bullet-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent-crimson);
+}
+
+/* === CARD GRID === */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+}
+
+.card {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    padding: clamp(0.6rem, 1.5vw, 1.2rem);
+    max-width: min(90vw, 1000px);
+    max-height: min(80vh, 700px);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.card.revealed { opacity: 1; transform: translateY(0); }
+
+.card-number {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(1.2rem, 2.5vw, 2rem);
+    color: var(--accent-crimson);
+    line-height: 1;
+    margin-bottom: 0.25em;
+}
+
+.card h3 {
+    font-size: clamp(0.85rem, 1.5vw, 1.1rem);
+    margin-bottom: 0.3em;
+}
+
+.card p {
+    font-size: var(--small-size);
+    color: var(--text-secondary);
+    margin-bottom: 0;
+    line-height: 1.4;
+}
+
+/* === CODE BLOCK === */
+.code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    padding: clamp(0.5rem, 1.5vw, 1rem);
+    font-family: 'Courier New', monospace;
+    font-size: var(--small-size);
+    line-height: 1.5;
+    overflow-x: auto;
+    color: var(--text-primary);
+    margin: var(--element-gap) 0;
+}
+
+/* === IMAGE PLACEHOLDER === */
+.image-placeholder {
+    border: 1px dashed var(--border);
+    padding: clamp(1rem, 2vw, 2rem);
+    text-align: center;
+    font-family: var(--font-body);
+    font-size: var(--small-size);
+    color: var(--text-secondary);
+    font-style: italic;
+    margin: var(--element-gap) 0;
+    max-width: 100%;
+    max-height: min(50vh, 400px);
+}
+
+/* === SPECTRUM / RANGE === */
+.spectrum {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.3rem, 0.8vh, 0.6rem);
+    margin: var(--element-gap) 0;
+}
+
+.spectrum-item {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.5rem, 1vw, 1rem);
+    font-size: var(--small-size);
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.spectrum-item.revealed { opacity: 1; transform: translateX(0); }
+
+.spectrum-label {
+    font-weight: 500;
+    min-width: clamp(5rem, 10vw, 8rem);
+    white-space: nowrap;
+}
+
+.spectrum-bar {
+    flex: 1;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent-crimson) 0%, var(--accent-warm) 100%);
+    position: relative;
+}
+
+.spectrum-note {
+    font-size: var(--small-size);
+    color: var(--text-secondary);
+    min-width: clamp(6rem, 12vw, 10rem);
+    text-align: right;
+}
+
+/* === GEOMETRIC DECORATIONS === */
+.geo-accent {
+    position: absolute;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.geo-circle {
+    width: clamp(60px, 12vw, 150px);
+    height: clamp(60px, 12vw, 150px);
+    border: 1.5px solid var(--border);
+    border-radius: 50%;
+    animation: geo-drift 20s ease-in-out infinite;
+}
+
+.geo-line {
+    width: clamp(40px, 8vw, 100px);
+    height: 1.5px;
+    background: var(--border);
+    animation: geo-drift-alt 25s ease-in-out infinite;
+}
+
+.geo-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-crimson);
+    animation: geo-drift 18s ease-in-out infinite reverse;
+}
+
+@keyframes geo-drift {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(5px, -8px); }
+    50% { transform: translate(-3px, -12px); }
+    75% { transform: translate(8px, -4px); }
+}
+
+@keyframes geo-drift-alt {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    33% { transform: translate(-5px, 5px) rotate(5deg); }
+    66% { transform: translate(5px, -3px) rotate(-3deg); }
+}
+
+/* === REVEAL ANIMATIONS === */
+.reveal {
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.reveal.revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.reveal-delay-1 { transition-delay: 0.15s; }
+.reveal-delay-2 { transition-delay: 0.3s; }
+.reveal-delay-3 { transition-delay: 0.45s; }
+.reveal-delay-4 { transition-delay: 0.6s; }
+.reveal-delay-5 { transition-delay: 0.75s; }
+.reveal-delay-6 { transition-delay: 0.9s; }
+
+/* === STATS ROW === */
+.stats-row {
+    display: flex;
+    gap: clamp(1rem, 3vw, 3rem);
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: var(--element-gap) 0;
+}
+
+.stat-item {
+    text-align: center;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.stat-item.revealed { opacity: 1; transform: translateY(0); }
+
+.stat-number {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(1rem, 2vw, 1.5rem);
+    color: var(--accent-crimson);
+}
+
+.stat-label {
+    font-size: var(--small-size);
+    color: var(--text-secondary);
+}
+
+/* === EMPHASIS TEXT === */
+.emphasis {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.text-secondary { color: var(--text-secondary); }
+.text-crimson { color: var(--accent-crimson); }
+.text-small { font-size: var(--small-size); }
+.text-center { text-align: center; }
+
+/* === CLOSING SLIDE LINKS === */
+.closing-links {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3em;
+    font-size: var(--small-size);
+    color: var(--text-secondary);
+}
+
+.closing-links a {
+    color: var(--accent-crimson);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s;
+}
+
+.closing-links a:hover { border-bottom-color: var(--accent-crimson); }
+
+/* === SUBTITLE ITALIC === */
+.subtitle-italic {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 700;
+    font-size: clamp(0.85rem, 1.8vw, 1.3rem);
+    color: var(--text-secondary);
+    margin-top: var(--element-gap);
+}
+
+/* === TITLE META === */
+.title-meta {
+    font-size: var(--small-size);
+    color: var(--text-secondary);
+    margin-top: var(--content-gap);
+    letter-spacing: 0.05em;
+}
+
+/* === INLINE NOTE === */
+.inline-note {
+    font-size: var(--small-size);
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-top: var(--element-gap);
+}
+
+/* === RESPONSIVE === */
+@media (max-height: 700px) {
+    :root {
+        --slide-padding: clamp(0.75rem, 3vw, 2rem);
+        --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+        --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+        --h2-size: clamp(1rem, 3vw, 1.75rem);
+    }
+}
+
+@media (max-height: 600px) {
+    :root {
+        --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+        --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+        --title-size: clamp(1.1rem, 4vw, 2rem);
+        --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+    }
+    .nav-dots, .keyboard-hint, .decorative { display: none; }
+}
+
+@media (max-height: 500px) {
+    :root {
+        --slide-padding: clamp(0.4rem, 2vw, 1rem);
+        --title-size: clamp(1rem, 3.5vw, 1.5rem);
+        --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+        --body-size: clamp(0.65rem, 1vw, 0.85rem);
+    }
+}
+
+@media (max-width: 600px) {
+    :root { --title-size: clamp(1.25rem, 7vw, 2.5rem); }
+    .card-grid { grid-template-columns: 1fr; }
+    .stats-row { flex-direction: column; align-items: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+    }
+    html { scroll-behavior: auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- === PROGRESS BAR === -->
+<div id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+
+<!-- ============================================ -->
+<!-- === SLIDE 1 — TITLE === -->
+<!-- ============================================ -->
+<section class="slide" id="slide-1" aria-label="Title slide">
+    <div class="slide-content">
+        <div class="slide-inner" style="text-align: center; position: relative;">
+            <!-- Geometric accent -->
+            <div class="geo-accent decorative" style="top: 8%; right: 12%;">
+                <div class="geo-circle"></div>
+            </div>
+            <div class="geo-accent decorative" style="top: 18%; right: 8%;">
+                <div class="geo-line"></div>
+            </div>
+            <div class="geo-accent decorative" style="top: 14%; right: 6%;">
+                <div class="geo-dot"></div>
+            </div>
+
+            <div class="reveal">
+                <h1 style="margin-bottom: 0.2em;">The Future of<br>Ethereum's State</h1>
+            </div>
+            <div class="reveal reveal-delay-1">
+                <p class="subtitle-italic">On partial statefulness, state markets,<br>and the post-ZKEVM landscape</p>
+            </div>
+            <hr class="elegant-hr reveal reveal-delay-2" style="max-width: 200px; margin: var(--content-gap) auto;">
+            <div class="reveal reveal-delay-3">
+                <p class="title-meta">CPerezz &amp; @DanGoron2</p>
+                <p class="title-meta" style="margin-top:0.2em;">EthCC 2026</p>
+            </div>
+        </div>
+    </div>
+    <div class="slide-counter"><span class="current">1</span> / 16</div>
+</section>
+
+<!-- ============================================ -->
+<!-- === SLIDE 2 — WHERE WE ARE === -->
+<!-- ============================================ -->
+<section class="slide" id="slide-2" aria-label="Where We Are">
+    <div class="slide-content">
+        <div class="slide-inner">
+            <p class="section-label reveal">I. The Present</p>
+            <h2 class="reveal reveal-delay-1">Where We Are</h2>
+            <hr class="elegant-hr reveal reveal-delay-1">
+            <p class="reveal reveal-delay-2 drop-cap">Today, Ethereum's state is one of its strongest defensive assets.</p>
+            <ul class="bullet-list" style="margin-top: var(--element-gap);">
+                <li class="reveal reveal-delay-2">~640 GB, replicated across 10,000+ validators</li>
+                <li class="reveal reveal-delay-3">Every validator re-executes every transaction</li>
+                <li class="reveal reveal-delay-4">Geographic distribution across the globe</li>
+                <li class="reveal reveal-delay-5">Result: censorship requires targeting the entire planet</li>
+            </ul>
+            <div class="pull-quote reveal reveal-delay-6">
+                State replication is Ethereum's immune system.
+            </div>
+        </div>
+    </div>
+    <div class="slide-counter"><span class="current">2</span> / 16</div>
+</section>
+
+<!-- ============================================ -->
+<!-- === SLIDE 3 — WHERE WE'RE GOING === -->
+<!-- ============================================ -->
+<section class="slide" id="slide-3" aria-label="Where We're Going">
+    <div class="slide-content">
+        <div class="slide-inner">
+            <p class="section-label reveal">I. The Present</p>
+            <h2 class="reveal reveal-delay-1">Where We're Going</h2>
+            <hr class="elegant-hr reveal reveal-delay-1">
+            <p class="reveal reveal-delay-2 drop-cap">ZKEVMs will fundamentally change the validator's relationship to state.</p>
+            <ul class="bullet-list" style="margin-top: var(--element-gap);">
+                <li class="reveal reveal-delay-2">A SNARK proof replaces re-execution</li>
+                <li class="reveal reveal-delay-3">Verification in milliseconds, without holding state</li>
+                <li class="reveal reveal-delay-4">Validators become rational: if they don't need state, they won't hold it</li>
+                <li class="reveal reveal-delay-5">The invisible hand pushes state out of validator machines</li>
+            </ul>
+        </div>
+    </div>
+    <div class="slide-counter"><span class="current">3</span> / 16</div>
+</section>
+
+<!-- ============================================ -->
+<!-- === SLIDE 4 — THE WORLD WITHOUT INCENTIVES === -->
+<!-- ============================================ -->
+<section class="slide" id="slide-4" aria-label="The World Without Incentives">
+    <div class="slide-content">
+        <div class="slide-inner">
+            <p class="section-label reveal">II. The Problem</p>
+            <h2 class="reveal reveal-delay-1">The World Without Incentives</h2>
+            <hr class="elegant-hr reveal reveal-delay-1">
+            <p class="reveal reveal-delay-2 drop-cap">Without incentives to hold state, replication collapses.</p>
+            <ul class="bullet-list" style="margin-top: var(--element-gap);">
+                <li class="reveal reveal-delay-2">10,000 validators &rarr; ~50 operators (builders + RPC providers)</li>
+                <li class="reveal reveal-delay-3">State becomes centralized infrastructure, not distributed commons</li>
+                <li class="reveal reveal-delay-4">FOCIL inclusion lists require state to find transactions</li>
+                <li class="reveal reveal-delay-5">Censorship scenario: cut off state serving for targeted addresses &rarr; invisible, protocol-level censorship</li>
+            </ul>
+            <p class="inline-note reveal reveal-delay-6">State expiry was proposed as a solution. It adds protocol complexity without solving centralization&thinsp;&mdash;&thinsp;wallets still need the same providers for expired state.</p>
+        </div>
+    </div>
+    <div class="slide-counter"><span class="current">4</span> / 16</div>
+</section>
+
+<!-- ============================================ -->
+<!-- === SLIDE 5 — A DIFFERENT ARCHITECTURE === -->
+<!-- ============================================ -->
+<section class="slide" id="slide-5" aria-label="A Different Architecture">
+    <div class="slide-content">
+        <div class="slide-inner">
+            <p class="section-label reveal">III. Partial Statefulness</p>
+            <h2 class="reveal reveal-delay-1">A Different Architecture</h2>
+            <hr class="elegant-hr reveal reveal-delay-1">
+            <p class="reveal reveal-delay-2" style="margin-bottom: var(--element-gap);">What if nodes held only the state they cared about?</p>
+            <div class="card-grid">
+                <div class="card reveal reveal-delay-3">
+                    <div class="card-number">1</div>
+                    <h3>The Full Account Trie</h3>
+                    <p>Every account's balance, nonce, codeHash (~50 GB)</p>
+                </div>
+                <div class="card reveal reveal-delay-4">
+                    <div class="card-number">2</div>
+                    <h3>Selective Contract Storage</h3>
+                    <p>Choose contracts to track (USDC, DAI, Uniswap&hellip;)</p>
+                </div>
+                <div class="card reveal reveal-delay-5">
+                    <div class="card-number">3</div>
+                    <h3>Block Access Lists</h3>
+                    <p>Follow the chain through state diffs, no re-execution</p>
+                </div>
+            </div>
+            <p class="reveal reveal-delay-6 emphasis text-center" style="margin-top: var(--element-gap);">A partial stateful node: 59 GB on mainnet. An 83% reduction from a full node.</p>
+        </div>
+    </div>
+    <div class="slide-counter"><span class="current">5</span> / 16</div>
+</section>
+
+<!-- ============================================ -->
+<!-- === SLIDE 6 — THE ELEGANT INSIGHT === -->
+<!-- ============================================ -->
+<section class="slide" id="slide-6" aria-label="The Elegant Insight">
+    <div class="slide-content">
+        <div class="slide-inner">
+            <p class="section-label reveal">III. Partial Statefulness</p>
+            <h2 class="reveal reveal-delay-1">The Elegant Insight</h2>
+            <hr class="elegant-hr reveal reveal-delay-1">
+            <p class="reveal reveal-delay-2 drop-cap">Each contract's storage is an independent subtrie.</p>
+            <ul class="bullet-list" style="margin-top: var(--element-gap);">
+                <li class="reveal reveal-delay-2">The account trie stays complete&thinsp;&mdash;&thinsp;you can prove any account</li>
+                <li class="reveal reveal-delay-3">Tracked contracts: you hold their full storage trie, can generate proofs</li>
+                <li class="reveal reveal-delay-4">Untracked contracts: you keep only the storage root hash</li>
+                <li class="reveal reveal-delay-5">The MPT topology lets you skip entire subtries without breaking integrity</li>
+            </ul>
+            <div class="image-placeholder reveal reveal-delay-5" style="margin-top: var(--element-gap);">
+                [IMAGE: mpt-proof-path.png]<br>
+                <span style="font-size: 0.85em;">storage slot &rarr; storage trie &rarr; storage root &rarr; account leaf &rarr; account trie &rarr; state root</span>
+            </div>
+        </div>
+    </div>
+    <div class="slide-counter"><span class="current">6</span> / 16</div>
+</section>
+
+<!-- ============================================ -->
+<!-- === SLIDE 7 — FOLLOWING THE CHAIN === -->
+<!-- ============================================ -->
+<section class="slide" id="slide-7" aria-label="Following the Chain">
+    <div class="slide-content">
+        <div class="slide-inner">
+            <p class="section-label reveal">III. Partial Statefulness</p>
+            <h2 class="reveal reveal-delay-1">Following the Chain</h2>
+            <hr class="elegant-hr reveal reveal-delay-1">
+            <p class="reveal reveal-delay-2 drop-cap">BALs (EIP-7928, Glamsterdam) make partial statefulness possible.</p>
+            <ul class="bullet-list" style="margin-top: var(--element-gap);">
+                <li class="reveal reveal-delay-3">BALs record all state changes per block&thinsp;&mdash;&thinsp;consensus-enforced completeness</li>
+                <li class="reveal reveal-delay-4">Apply diffs directly: no transaction re-execution</li>
+                <li class="reveal reveal-delay-5">Security: state root recomputed from diffs + sync committee signatures (pre-ZKEVM) or SNARK verification (post-ZKEVM)</li>
+            </ul>
+            <div class="pull-quote reveal reveal-delay-6">
+                Stronger than a light client: you recompute the state root, not just trust the header.
+            </div>
+        </div>
+    </div>
+    <div class="slide-counter"><span class="current">7</span> / 16</div>
+</section>
+
+<!-- ============================================ -->
+<!-- === SLIDE 8 — CENSORSHIP RESISTANCE === -->
+<!-- ============================================ -->
+<section class="slide" id="slide-8" aria-label="Censorship Resistance">
+    <div class="slide-content">
+        <div class="slide-inner">
+            <p class="section-label reveal">IV. What This Enables</p>
+            <h2 class="reveal reveal-delay-1">Censorship Resistance</h2>
+            <hr class="elegant-hr reveal reveal-delay-1">
+            <p class="reveal reveal-delay-2">FOCIL needs state. PS provides it.</p>
+            <ul class="bullet-list" style="margin-top: var(--element-gap);">
+                <li class="reveal reveal-delay-2">EIP-7805: 16 includers per slot select transactions from mempool</li>
+                <li class="reveal reveal-delay-3">Account data makes includers effective&thinsp;&mdash;&thinsp;valid txs are harder for builders to exclude</li>
+                <li class="reveal reveal-delay-4">PS drops the hardware bar from ~640 GB to ~50&ndash;80 GB</li>
+                <li class="reveal reveal-delay-5">Without PS, post-ZKEVM includers are only builders and RPC providers</li>
+            </ul>
+            <div class="pull-quote reveal reveal-delay-6">
+                Account data makes includers effective, not just eligible.
+            </div>
+        </div>
+    </div>
+    <div class="slide-counter"><span class="current">8</span> / 16</div>
+</section>
+
+<!-- ============================================ -->
+<!-- === SLIDE 9 — STATE AS A MARKET === -->
+<!-- ============================================ -->
+<section class="slide" id="slide-9" aria-label="State as a Market">
+    <div class="slide-content">
+        <div class="slide-inner">
+            <p class="section-label reveal">IV. What This Enables</p>
+            <h2 class="reveal reveal-delay-1">State as a Market</h2>
+            <hr class="elegant-hr reveal reveal-delay-1">
+            <p class="reveal reveal-delay-2 drop-cap">Partial statefulness creates a natural market for state serving.</p>
+            <ul class="bullet-list" style="margin-top: var(--element-gap);">
+                <li class="reveal reveal-delay-3">Emergent, out-of-protocol&thinsp;&mdash;&thinsp;different operators, different strategies</li>
+                <li class="reveal reveal-delay-4">Hot state = cheap (many holders), cold state = premium (few holders)</li>
+                <li class="reveal reveal-delay-5">Load balancers route queries to PS nodes tracking relevant contracts</li>
+            </ul>
+            <p class="inline-note reveal reveal-delay-5">The attestation analogy: one query &asymp; nothing. A year of queries &asymp; meaningful revenue.</p>
+            <div class="image-placeholder reveal reveal-delay-6" style="margin-top: var(--element-gap);">
+                [IMAGE: state-market-flywheel.png]
+            </div>
+        </div>
+    </div>
+    <div class="slide-counter"><span class="current">9</span> / 16</div>
+</section>
+
+<!-- ============================================ -->
+<!-- === SLIDE 10 — NATURAL REDUNDANCY === -->
+<!-- ============================================ -->
+<section class="slide" id="slide-10" aria-label="Natural Redundancy">
+    <div class="slide-content">
+        <div class="slide-inner">
+            <p class="section-label reveal">IV. What This Enables</p>
+            <h2 class="reveal reveal-delay-1">Natural Redundancy</h2>
+            <hr class="elegant-hr reveal reveal-delay-1">
+            <p class="reveal reveal-delay-2 drop-cap">The market creates a redundancy gradient.</p>
+            <ul class="bullet-list" style="margin-top: var(--element-gap);">
+                <li class="reveal reveal-delay-3">USDC: replicated by thousands. ENS: by dozens. Obscure contracts: by a few.</li>
+                <li class="reveal reveal-delay-4">No protocol changes needed&thinsp;&mdash;&thinsp;market handles stratification</li>
+                <li class="reveal reveal-delay-5">PS achieves what state expiry promises: hot state distributed, cold state held by specialists</li>
+                <li class="reveal reveal-delay-6">Users never experience "account expired"&thinsp;&mdash;&thinsp;just fewer replicas for cold state</li>
+            </ul>
+            <div class="pull-quote reveal reveal-delay-6">
+                This is state expiry through market forces, not protocol mandates.
+            </div>
+        </div>
+    </div>
+    <div class="slide-counter"><span class="current">10</span> / 16</div>
+</section>
+
+<!-- ============================================ -->
+<!-- === SLIDE 11 — THE VALIDATOR FLOOR === -->
+<!-- ============================================ -->
+<section class="slide" id="slide-11" aria-label="The Validator Floor">
+    <div class="slide-content">
+        <div class="slide-inner">
+            <p class="section-label reveal">IV. What This Enables</p>
+            <h2 class="reveal reveal-delay-1">The Validator Floor</h2>
+            <hr class="elegant-hr reveal reveal-delay-1">
+            <p class="reveal reveal-delay-2">VOPS: <strong>8.4 GB</strong> to remain a meaningful validator.</p>
+            <ul class="bullet-list" style="margin-top: var(--element-gap);">
+                <li class="reveal reveal-delay-3">Validity-Only Partial Statelessness: just the account quadruplets</li>
+                <li class="reveal reveal-delay-4">Enables: mempool management + FOCIL inclusion + SNARK verification</li>
+                <li class="reveal reveal-delay-5">Any PS node is also a VOPS node</li>
+            </ul>
+            <div class="pull-quote reveal reveal-delay-6">
+                The minimal cost of keeping Ethereum censorship-resistant in a post-ZKEVM world.
+            </div>
+        </div>
+    </div>
+    <div class="slide-counter"><span class="current">11</span> / 16</div>
+</section>
+
+<!-- ============================================ -->
+<!-- === SLIDE 12 — AGENTS AS CONSUMERS === -->
+<!-- ============================================ -->
+<section class="slide" id="slide-12" aria-label="Agents as Consumers">
+    <div class="slide-content">
+        <div class="slide-inner">
+            <p class="section-label reveal">V. The Consumers</p>
+            <h2 class="reveal reveal-delay-1">Agents as Consumers</h2>
+            <hr class="elegant-hr reveal reveal-delay-1">
+            <p class="reveal reveal-delay-2 drop-cap">AI agents are the first Ethereum users that are both autonomous and trust-sensitive.</p>
+            <ul class="bullet-list" style="margin-top: var(--element-gap);">
+                <li class="reveal reveal-delay-3">Unlike humans who trust MetaMask + Infura, agents managing capital need verifiable state</li>
+                <li class="reveal reveal-delay-4">PS nodes serve proof-carrying responses&thinsp;&mdash;&thinsp;cryptographically verified, not trusted</li>
+                <li class="reveal reveal-delay-5">Domain specialization aligns naturally: DeFi agent &harr; DeFi PS node</li>
+            </ul>
+            <p class="inline-note reveal reveal-delay-5">The ZKEVM transition creates the need. Agents become PS's most natural consumer.</p>
+            <div class="stats-row" style="margin-top: var(--element-gap);">
+                <div class="stat-item reveal reveal-delay-4">
+                    <div class="stat-number">40M+</div>
+                    <div class="stat-label">smart accounts</div>
+                </div>
+                <div class="stat-item reveal reveal-delay-5">
+                    <div class="stat-number">162M</div>
+                    <div class="stat-label">machine txs</div>
+                </div>
+                <div class="stat-item reveal reveal-delay-6">
+                    <div class="stat-number">15K+</div>
+                    <div class="stat-label">agent projects</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-counter"><span class="current">12</span> / 16</div>
+</section>
+
+<!-- ============================================ -->
+<!-- === SLIDE 13 — TENSION WITH AA === -->
+<!-- ============================================ -->
+<section class="slide" id="slide-13" aria-label="The Tension with Account Abstraction">
+    <div class="slide-content">
+        <div class="slide-inner">
+            <p class="section-label reveal">VI. Open Design Space</p>
+            <h2 class="reveal reveal-delay-1">The Tension with Account Abstraction</h2>
+            <hr class="elegant-hr reveal reveal-delay-1">
+            <p class="reveal reveal-delay-2">Statelessness and AA pull in opposite directions.</p>
+            <div class="spectrum" style="margin-top: var(--element-gap);">
+                <div class="spectrum-item reveal reveal-delay-3">
+                    <span class="spectrum-label">Schemed Tx</span>
+                    <div class="spectrum-bar" style="background: var(--accent-crimson); opacity:0.3;"></div>
+                    <span class="spectrum-note">zero state &mdash; fully compatible</span>
+                </div>
+                <div class="spectrum-item reveal reveal-delay-4">
+                    <span class="spectrum-label">EIP-7702</span>
+                    <div class="spectrum-bar" style="background: linear-gradient(90deg, var(--accent-crimson) 30%, var(--accent-warm) 100%);"></div>
+                    <span class="spectrum-note">account data &mdash; compatible</span>
+                </div>
+                <div class="spectrum-item reveal reveal-delay-5">
+                    <span class="spectrum-label">Frame Tx</span>
+                    <div class="spectrum-bar" style="background: var(--accent-crimson);"></div>
+                    <span class="spectrum-note">arbitrary EVM &mdash; ~12&ndash;20 KB witness</span>
+                </div>
+            </div>
+            <p class="reveal reveal-delay-5 emphasis" style="margin-top: var(--element-gap);">The choice of AA design is inseparable from the choice of node architecture.</p>
+            <p class="inline-note reveal reveal-delay-6">Research gap: the AA-statelessness interaction is under-researched at protocol level.</p>
+        </div>
+    </div>
+    <div class="slide-counter"><span class="current">13</span> / 16</div>
+</section>
+
+<!-- ============================================ -->
+<!-- === SLIDE 14 — THE INSEPARABLE GRAPH === -->
+<!-- ============================================ -->
+<section class="slide" id="slide-14" aria-label="On the Inseparable Graph">
+    <div class="slide-content">
+        <div class="slide-inner">
+            <p class="section-label reveal">VI. Open Design Space</p>
+            <h2 class="reveal reveal-delay-1">On the Inseparable Graph</h2>
+            <hr class="elegant-hr reveal reveal-delay-1">
+            <p class="reveal reveal-delay-2">A fair critique: DeFi state is deeply interconnected.</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--element-gap); margin-top: var(--element-gap);">
+                <div class="reveal reveal-delay-3">
+                    <h3 style="color: var(--accent-crimson); font-size: var(--body-size); margin-bottom: 0.3em;">When valid</h3>
+                    <p class="text-small">Large aggregators need the full graph. MEV searchers need complete state.</p>
+                </div>
+                <div class="reveal reveal-delay-4">
+                    <h3 style="color: var(--text-secondary); font-size: var(--body-size); margin-bottom: 0.3em;">When not</h3>
+                    <p class="text-small">VOPS nodes. ENS. Privacy protocols. Specialized balance queries.</p>
+                </div>
+            </div>
+            <div class="pull-quote reveal reveal-delay-5" style="margin-top: var(--element-gap);">
+                PS nodes don't serve everything. They serve one piece. Different nodes serve different pieces. Proofs batch across nodes sharing the same state root.
+            </div>
+            <p class="inline-note reveal reveal-delay-6">This is not about replacing full nodes. It's about creating a spectrum of participation.</p>
+        </div>
+    </div>
+    <div class="slide-counter"><span class="current">14</span> / 16</div>
+</section>
+
+<!-- ============================================ -->
+<!-- === SLIDE 15 — THE IMPLEMENTATION === -->
+<!-- ============================================ -->
+<section class="slide" id="slide-15" aria-label="The Implementation">
+    <div class="slide-content">
+        <div class="slide-inner">
+            <p class="section-label reveal">VII. Already Real</p>
+            <h2 class="reveal reveal-delay-1">The Implementation</h2>
+            <hr class="elegant-hr reveal reveal-delay-1">
+            <p class="reveal reveal-delay-2">go-ethereum PR #33764&thinsp;&mdash;&thinsp;working on mainnet.</p>
+            <div class="code-block reveal reveal-delay-3">
+                geth --partial-state --partial-state.contracts 0xA0b8...USDC,0x6B17...DAI
+            </div>
+            <ul class="bullet-list" style="margin-top: var(--element-gap);">
+                <li class="reveal reveal-delay-3">59 GB (account trie + USDC + DAI)</li>
+                <li class="reveal reveal-delay-4">BALs landing in Glamsterdam (2026)</li>
+                <li class="reveal reveal-delay-5">AA decision in Hegota (2026)</li>
+                <li class="reveal reveal-delay-5">ZKEVMs in next 1&ndash;2 forks (~2027+)</li>
+            </ul>
+            <div class="image-placeholder reveal reveal-delay-6" style="margin-top: var(--element-gap);">
+                [IMAGE: geth-ps-screenshot.png]
+            </div>
+        </div>
+    </div>
+    <div class="slide-counter"><span class="current">15</span> / 16</div>
+</section>
+
+<!-- ============================================ -->
+<!-- === SLIDE 16 — CLOSING === -->
+<!-- ============================================ -->
+<section class="slide" id="slide-16" aria-label="Closing">
+    <div class="slide-content">
+        <div class="slide-inner" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative;">
+            <!-- Geometric accent mirroring title -->
+            <div class="geo-accent decorative" style="bottom: 15%; left: 10%;">
+                <div class="geo-circle"></div>
+            </div>
+            <div class="geo-accent decorative" style="bottom: 22%; left: 6%;">
+                <div class="geo-line"></div>
+            </div>
+            <div class="geo-accent decorative" style="bottom: 19%; left: 4%;">
+                <div class="geo-dot"></div>
+            </div>
+
+            <p class="section-label reveal">Coda</p>
+            <div class="pull-quote-large reveal reveal-delay-1" style="border-left: 4px solid var(--accent-crimson);">
+                Decentralization is measured not by who can afford a datacenter, but by who can keep a small, verified piece of the state alive.
+            </div>
+            <hr class="elegant-hr reveal reveal-delay-3" style="max-width: 120px; margin: var(--element-gap) auto;">
+            <div class="closing-links reveal reveal-delay-4">
+                <span>Try PS after Glamsterdam &middot; Feedback welcome</span>
+                <span>CPerezz &amp; @DanGoron2</span>
+                <span>
+                    <a href="https://ethresear.ch" target="_blank" rel="noopener">ethresear.ch</a> &middot;
+                    <a href="https://github.com/ethereum/go-ethereum/pull/33764" target="_blank" rel="noopener">github.com/ethereum/go-ethereum/pull/33764</a>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="slide-counter"><span class="current">16</span> / 16</div>
+</section>
+
+<!-- === JAVASCRIPT === -->
+<script>
+/* === SLIDE PRESENTATION CLASS === */
+class SlidePresentation {
+    constructor() {
+        this.slides = document.querySelectorAll('.slide');
+        this.totalSlides = this.slides.length;
+        this.currentSlide = 0;
+        this.isScrolling = false;
+        this.scrollTimeout = null;
+        this.touchStartY = 0;
+        this.touchStartX = 0;
+
+        this.progressBar = document.getElementById('progress-bar');
+
+        this.init();
+    }
+
+    init() {
+        this.setupIntersectionObserver();
+        this.setupKeyboardNav();
+        this.setupTouchNav();
+        this.setupWheelNav();
+        this.updateProgress();
+        this.revealSlide(0);
+    }
+
+    /* === INTERSECTION OBSERVER === */
+    setupIntersectionObserver() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
+                    const slideIndex = Array.from(this.slides).indexOf(entry.target);
+                    this.currentSlide = slideIndex;
+                    this.updateProgress();
+                    this.revealSlide(slideIndex);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        this.slides.forEach(slide => observer.observe(slide));
+    }
+
+    /* === REVEAL ELEMENTS === */
+    revealSlide(index) {
+        const slide = this.slides[index];
+        if (!slide) return;
+
+        const revealElements = slide.querySelectorAll('.reveal, .pull-quote, .pull-quote-large, .elegant-hr, .card, .spectrum-item, .stat-item');
+        revealElements.forEach((el, i) => {
+            setTimeout(() => {
+                el.classList.add('revealed');
+            }, 80 * i);
+        });
+
+        /* Staggered bullet list reveals */
+        const bullets = slide.querySelectorAll('.bullet-list li');
+        bullets.forEach((li, i) => {
+            setTimeout(() => {
+                li.classList.add('revealed');
+            }, 200 + 120 * i);
+        });
+    }
+
+    /* === KEYBOARD NAVIGATION === */
+    setupKeyboardNav() {
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'ArrowDown':
+                case 'ArrowRight':
+                case ' ':
+                case 'PageDown':
+                    e.preventDefault();
+                    this.goToSlide(this.currentSlide + 1);
+                    break;
+                case 'ArrowUp':
+                case 'ArrowLeft':
+                case 'PageUp':
+                    e.preventDefault();
+                    this.goToSlide(this.currentSlide - 1);
+                    break;
+                case 'Home':
+                    e.preventDefault();
+                    this.goToSlide(0);
+                    break;
+                case 'End':
+                    e.preventDefault();
+                    this.goToSlide(this.totalSlides - 1);
+                    break;
+            }
+        });
+    }
+
+    /* === TOUCH / SWIPE NAVIGATION === */
+    setupTouchNav() {
+        document.addEventListener('touchstart', (e) => {
+            this.touchStartY = e.touches[0].clientY;
+            this.touchStartX = e.touches[0].clientX;
+        }, { passive: true });
+
+        document.addEventListener('touchend', (e) => {
+            const deltaY = this.touchStartY - e.changedTouches[0].clientY;
+            const deltaX = this.touchStartX - e.changedTouches[0].clientX;
+
+            if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 50) {
+                if (deltaY > 0) {
+                    this.goToSlide(this.currentSlide + 1);
+                } else {
+                    this.goToSlide(this.currentSlide - 1);
+                }
+            }
+        }, { passive: true });
+    }
+
+    /* === WHEEL NAVIGATION === */
+    setupWheelNav() {
+        document.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            if (this.isScrolling) return;
+
+            this.isScrolling = true;
+
+            if (e.deltaY > 30) {
+                this.goToSlide(this.currentSlide + 1);
+            } else if (e.deltaY < -30) {
+                this.goToSlide(this.currentSlide - 1);
+            }
+
+            clearTimeout(this.scrollTimeout);
+            this.scrollTimeout = setTimeout(() => {
+                this.isScrolling = false;
+            }, 800);
+        }, { passive: false });
+    }
+
+    /* === GO TO SLIDE === */
+    goToSlide(index) {
+        if (index < 0 || index >= this.totalSlides) return;
+        this.currentSlide = index;
+        this.slides[index].scrollIntoView({ behavior: 'smooth' });
+        this.updateProgress();
+        this.revealSlide(index);
+    }
+
+    /* === UPDATE PROGRESS === */
+    updateProgress() {
+        const progress = ((this.currentSlide) / (this.totalSlides - 1)) * 100;
+        this.progressBar.style.width = progress + '%';
+        this.progressBar.setAttribute('aria-valuenow', Math.round(progress));
+
+        /* Update slide counters */
+        this.slides.forEach((slide, i) => {
+            const counter = slide.querySelector('.slide-counter .current');
+            if (counter) counter.textContent = i + 1;
+        });
+    }
+}
+
+/* === INIT === */
+document.addEventListener('DOMContentLoaded', () => {
+    new SlidePresentation();
+});
+</script>
+
+</body>
+</html>

@@ -90,11 +90,11 @@ Target audience: staking operators, core devs, general Ethereum community.
 - **Eyebrow:** `// TODAY`
 - **Title:** `The` (white) `Status Quo` (green)
 - **Bullet list (4 items):**
-  - Every validator holds ~640 GB of state
+  - Every validator holds ~280 GB of state
   - Full re-execution of every transaction
   - State replicated across ~10,000+ validators worldwide
   - Geographic distribution makes censorship nearly impossible
-- **Stat row (3 stats):** `10,000+` validators | `640 GB` per node | `Global` distribution
+- **Stat row (3 stats):** `10,000+` validators | `280 GB` state per node | `Global` distribution
 - **Footer:** `$ eth.syncing` | `2 / 22`
 
 #### Slide 3 — The Centralization Trap
@@ -136,7 +136,7 @@ Target audience: staking operators, core devs, general Ethereum community.
   - Card 1: **Full Account Trie** — Every account's balance, nonce, codeHash (~50 GB)
   - Card 2: **Selective Storage** — Choose which contracts to track (USDC, DAI, Uniswap...)
   - Card 3: **No Re-execution** — Follow chain tip via Block Access Lists (BALs)
-- **Stat row (2 stats):** `59 GB` on mainnet | `83%` reduction vs full node
+- **Stat row (2 stats):** `59 GB` on mainnet | `79%` reduction vs full state
 - **Footer:** `$ geth --partial-state` | `6 / 22`
 
 #### Slide 7 — [DIAGRAM] PS Node Architecture
@@ -146,7 +146,7 @@ Target audience: staking operators, core devs, general Ethereum community.
   - Top section: `ACCOUNT TRIE (~50 GB) — complete`
   - Middle section: `TRACKED: USDC, DAI (~9 GB)`
   - Bottom section: `UNTRACKED — roots only`
-  - Ghosted outline: `FULL NODE: ~640 GB`
+  - Ghosted outline: `FULL STATE: ~280 GB`
 - **Footer:** `$ du -sh ~/.ethereum/partial/` | `7 / 22`
 
 #### Slide 8 — The Proof Path
@@ -192,7 +192,7 @@ Target audience: staking operators, core devs, general Ethereum community.
   - FOCIL (EIP-7805): 16 includers per slot select txs from the mempool
   - Includers need account data to pick VALID transactions
   - Valid txs in ILs = harder for builders to justify exclusion
-  - PS drops hardware from ~640 GB to ~50-80 GB → dramatically expands the includer pool
+  - PS drops state from ~280 GB to ~59 GB → dramatically expands the includer pool
 - **Pull quote:** "Account data makes includers effective, not just eligible. Without PS, only builders and RPC providers can be includers post-ZKEVM."
 - **Footer:** `$ focil --include-from-mempool` | `11 / 22`
 - **Source footnote:** EIP-7805: eips.ethereum.org/EIPS/eip-7805
@@ -312,7 +312,7 @@ Target audience: staking operators, core devs, general Ethereum community.
        --partial-state.contracts 0xA0b8...USDC,0x6B17...DAI \
        --partial-state.chain-retention 1024
   ```
-- **Stat row (2 stats):** `59 GB` mainnet | `83%` reduction
+- **Stat row (2 stats):** `59 GB` mainnet | `79%` reduction
 - **Roadmap (3 items, horizontal):**
   - `Glamsterdam (2026)` → BALs land — PS becomes possible
   - `Hegota (2026)` → AA decision impacts PS compatibility
@@ -362,11 +362,11 @@ All data points used in the presentation with their sources:
 | Data Point | Value | Source |
 |------------|-------|--------|
 | Ethereum validators with state | ~10,000+ | Ethereum network stats |
-| Full node state size | ~640 GB | go-ethereum, Paradigm research |
+| Full node state size | ~280 GB | lab.ethpandaops.io/ethereum/execution/state-growth |
 | PS node size (mainnet, USDC+DAI) | ~59 GB | go-ethereum PR #33764 (mainnet test) |
 | Account trie size | ~50 GB | go-ethereum PR #33764 |
 | USDC+DAI storage tries | ~9 GB | go-ethereum PR #33764 |
-| State reduction | ~83% | Derived: (640-59)/640 |
+| State reduction | ~79% | Derived: (280-59)/280 |
 | VOPS minimum storage | ~8.4 GB | ethresear.ch VOPS post (241M accounts × ~40 bytes) |
 | FOCIL includers per slot | 16 | EIP-7805 |
 | ERC-4337 smart accounts | 40M+ (end 2024) | Alchemy, Rhinestone |
