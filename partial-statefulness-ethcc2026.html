@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Who Holds Ethereum's State? — Partial Statefulness | EthCC 2026</title>
+
+    <!-- Fonts: VT323 for CRT headings, IBM Plex Mono for readable body -->
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===========================================
+           CSS CUSTOM PROPERTIES (CRT HYBRID THEME)
+           =========================================== */
+        :root {
+            /* Colors */
+            --bg: #000000;
+            --bg-surface: #0a0a0a;
+            --border: #1a2a1a;
+            --border-bright: #1a3a1a;
+
+            --green: #33ff33;
+            --green-dim: #22cc22;
+            --green-muted: #1a5a1a;
+            --green-glow: rgba(51, 255, 51, 0.3);
+            --green-bg: rgba(51, 255, 51, 0.02);
+            --green-bg-card: rgba(51, 255, 51, 0.015);
+            --green-bg-code: rgba(51, 255, 51, 0.04);
+
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --text-muted: #666666;
+            --text-dim: #444444;
+            --white: #e8e8e8;
+
+            /* Typography — MUST use clamp() */
+            --font-crt: 'VT323', monospace;
+            --font-body: 'IBM Plex Mono', monospace;
+            --title-size: clamp(2rem, 6vw, 4.5rem);
+            --h2-size: clamp(1.4rem, 3.5vw, 2.5rem);
+            --h3-size: clamp(0.9rem, 2vw, 1.3rem);
+            --body-size: clamp(0.7rem, 1.3vw, 1rem);
+            --small-size: clamp(0.6rem, 0.9vw, 0.8rem);
+            --tag-size: clamp(0.55rem, 0.8vw, 0.7rem);
+            --stat-size: clamp(1.8rem, 5vw, 3.5rem);
+
+            /* Spacing — MUST use clamp() */
+            --slide-padding: clamp(1.5rem, 5vw, 5rem);
+            --content-gap: clamp(0.5rem, 2vw, 1.5rem);
+            --element-gap: clamp(0.25rem, 1vw, 0.8rem);
+
+            /* Animation */
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration: 0.6s;
+        }
+
+        /* ===========================================
+           BASE RESET
+           =========================================== */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* ===========================================
+           VIEWPORT FITTING: MANDATORY BASE STYLES
+           =========================================== */
+        html, body { height: 100%; overflow-x: hidden; }
+        html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background: var(--bg);
+        }
+
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden;
+            padding: var(--slide-padding);
+        }
+
+        .card, .container, .content-box {
+            max-width: min(90vw, 1000px);
+            max-height: min(80vh, 700px);
+        }
+
+        img, .image-container {
+            max-width: 100%;
+            max-height: min(50vh, 400px);
+            object-fit: contain;
+        }
+
+        /* Short viewports */
+        @media (max-height: 700px) {
+            :root {
+                --slide-padding: clamp(0.75rem, 3vw, 2rem);
+                --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+                --title-size: clamp(1.5rem, 5vw, 3rem);
+                --h2-size: clamp(1.2rem, 3vw, 2rem);
+                --stat-size: clamp(1.5rem, 4vw, 2.5rem);
+            }
+        }
+        @media (max-height: 600px) {
+            :root {
+                --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+                --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+                --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+                --body-size: clamp(0.65rem, 1.2vw, 0.9rem);
+            }
+            .nav-dots, .decorative { display: none; }
+        }
+        @media (max-height: 500px) {
+            :root {
+                --slide-padding: clamp(0.4rem, 2vw, 1rem);
+                --title-size: clamp(1rem, 3.5vw, 1.5rem);
+                --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+                --body-size: clamp(0.6rem, 1vw, 0.8rem);
+            }
+        }
+        @media (max-width: 600px) {
+            :root { --title-size: clamp(1.5rem, 8vw, 3rem); }
+            .grid-2, .grid-3 { grid-template-columns: 1fr !important; }
+            .two-col { flex-direction: column !important; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+            html { scroll-behavior: auto; }
+        }
+
+        /* ===========================================
+           GLOBAL STYLES
+           =========================================== */
+        body {
+            background: var(--bg);
+            font-family: var(--font-body);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ===========================================
+           CRT EFFECTS
+           =========================================== */
+        .slide::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 3px,
+                rgba(0, 255, 0, 0.008) 3px,
+                rgba(0, 255, 0, 0.008) 6px
+            );
+            pointer-events: none;
+            z-index: 2;
+        }
+        .slide::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.4) 100%);
+            pointer-events: none;
+            z-index: 3;
+        }
+        .slide-content { position: relative; z-index: 5; }
+
+        /* ===========================================
+           TYPOGRAPHY
+           =========================================== */
+        .eyebrow {
+            font-family: var(--font-crt);
+            font-size: clamp(0.85rem, 1.2vw, 1.1rem);
+            color: var(--green);
+            opacity: 0.5;
+            letter-spacing: 0.2em;
+            margin-bottom: clamp(0.4rem, 1vh, 0.8rem);
+            text-shadow: 0 0 8px rgba(51, 255, 51, 0.2);
+        }
+        .slide-title {
+            font-family: var(--font-crt);
+            font-size: var(--h2-size);
+            color: var(--green);
+            line-height: 1.15;
+            margin-bottom: clamp(0.3rem, 1vh, 0.8rem);
+            text-shadow: 0 0 6px var(--green-glow), 0 0 20px rgba(51, 255, 51, 0.1);
+        }
+        .slide-title .w { color: var(--white); text-shadow: none; }
+        .hero-title {
+            font-family: var(--font-crt);
+            font-size: var(--title-size);
+            color: var(--green);
+            line-height: 1.1;
+            text-shadow: 0 0 6px var(--green-glow), 0 0 20px rgba(51, 255, 51, 0.1);
+        }
+        .hero-title .w { color: var(--white); text-shadow: none; }
+        .body-text {
+            font-family: var(--font-body);
+            font-size: var(--body-size);
+            color: var(--text-secondary);
+            line-height: 1.65;
+        }
+        .body-text strong { color: var(--text-primary); font-weight: 600; }
+        .body-text .g { color: var(--green); text-shadow: 0 0 4px rgba(51,255,51,0.2); }
+
+        /* ===========================================
+           BLINKING CURSOR
+           =========================================== */
+        .cursor {
+            display: inline-block;
+            width: 0.55em;
+            height: 0.85em;
+            background: var(--green);
+            vertical-align: middle;
+            margin-left: 2px;
+            animation: blink 1s step-end infinite;
+            box-shadow: 0 0 6px rgba(51, 255, 51, 0.4);
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* ===========================================
+           DIVIDER
+           =========================================== */
+        .divider {
+            border: none;
+            height: 1px;
+            background: linear-gradient(90deg, var(--border), var(--green) 30%, var(--green) 70%, var(--border));
+            margin: clamp(0.5rem, 1.5vh, 1.2rem) 0;
+            opacity: 0.3;
+        }
+
+        /* ===========================================
+           BULLET LIST
+           =========================================== */
+        .points {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.35rem, 0.8vh, 0.7rem);
+        }
+        .points li {
+            font-family: var(--font-body);
+            font-size: var(--body-size);
+            color: var(--text-secondary);
+            line-height: 1.55;
+            padding-left: clamp(1rem, 2vw, 1.6rem);
+            position: relative;
+        }
+        .points li::before {
+            content: '>';
+            position: absolute;
+            left: 0;
+            color: var(--green);
+            font-family: var(--font-crt);
+            font-size: clamp(0.9rem, 1.5vw, 1.2rem);
+            text-shadow: 0 0 4px rgba(51, 255, 51, 0.3);
+        }
+        .points li strong { color: var(--text-primary); font-weight: 600; }
+
+        /* ===========================================
+           STAT ROW
+           =========================================== */
+        .stat-row {
+            display: grid;
+            gap: clamp(0.5rem, 1.5vw, 0.8rem);
+            margin-top: clamp(0.5rem, 1.5vh, 1rem);
+        }
+        .stat-row.cols-3 { grid-template-columns: repeat(3, 1fr); }
+        .stat-row.cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .stat {
+            border: 1px solid var(--border);
+            padding: clamp(0.5rem, 1.2vw, 0.8rem);
+            text-align: center;
+            background: var(--green-bg);
+            position: relative;
+        }
+        .stat::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--green), transparent);
+            opacity: 0.3;
+        }
+        .stat-num {
+            font-family: var(--font-crt);
+            font-size: var(--stat-size);
+            color: var(--green);
+            text-shadow: 0 0 6px var(--green-glow);
+        }
+        .stat-label {
+            font-family: var(--font-body);
+            font-size: var(--tag-size);
+            color: var(--text-muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-top: 0.15rem;
+        }
+
+        /* ===========================================
+           PULL QUOTE
+           =========================================== */
+        .pull-quote {
+            border-left: 2px solid var(--green);
+            padding-left: clamp(0.8rem, 2vw, 1.2rem);
+            margin-top: clamp(0.5rem, 1.5vh, 1rem);
+        }
+        .pull-quote p {
+            font-family: var(--font-body);
+            font-size: var(--body-size);
+            color: #ccc;
+            line-height: 1.6;
+            font-style: italic;
+        }
+        .pull-quote .g {
+            color: var(--green);
+            font-style: normal;
+            text-shadow: 0 0 4px rgba(51,255,51,0.2);
+        }
+
+        /* ===========================================
+           FEATURE CARDS
+           =========================================== */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: clamp(0.4rem, 1vw, 0.8rem);
+            margin-top: clamp(0.5rem, 1.5vh, 1rem);
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: clamp(0.4rem, 1vw, 0.8rem);
+            margin-top: clamp(0.5rem, 1.5vh, 1rem);
+        }
+        .card {
+            border: 1px solid var(--border);
+            padding: clamp(0.6rem, 1.5vw, 1rem);
+            background: var(--green-bg-card);
+            position: relative;
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--green), transparent);
+            opacity: 0.3;
+        }
+        .card-title {
+            font-family: var(--font-crt);
+            font-size: clamp(0.9rem, 1.5vw, 1.15rem);
+            color: var(--green);
+            margin-bottom: clamp(0.15rem, 0.5vh, 0.3rem);
+            text-shadow: 0 0 4px rgba(51,255,51,0.2);
+        }
+        .card-body {
+            font-family: var(--font-body);
+            font-size: clamp(0.6rem, 1vw, 0.8rem);
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* ===========================================
+           CODE BLOCK
+           =========================================== */
+        .code-block {
+            background: var(--green-bg-code);
+            border: 1px solid var(--border);
+            padding: clamp(0.6rem, 1.5vw, 1rem) clamp(0.8rem, 2vw, 1.2rem);
+            margin-top: clamp(0.5rem, 1vh, 0.8rem);
+            font-family: var(--font-body);
+            font-size: clamp(0.6rem, 1.1vw, 0.85rem);
+            color: var(--text-secondary);
+            line-height: 1.7;
+            white-space: pre-wrap;
+            overflow: hidden;
+        }
+        .code-block .cmd { color: var(--green); }
+        .code-block .flag { color: var(--text-primary); }
+        .code-block .comment { color: var(--text-dim); }
+
+        /* ===========================================
+           CODE PATH (inline trie path)
+           =========================================== */
+        .code-path {
+            font-family: var(--font-crt);
+            font-size: clamp(0.9rem, 1.5vw, 1.2rem);
+            color: var(--green);
+            line-height: 1.8;
+            text-shadow: 0 0 4px rgba(51,255,51,0.2);
+            margin: clamp(0.5rem, 1vh, 0.8rem) 0;
+        }
+
+        /* ===========================================
+           STEP FLOW
+           =========================================== */
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.3rem, 0.8vh, 0.6rem);
+            margin-top: clamp(0.3rem, 1vh, 0.6rem);
+        }
+        .step {
+            display: flex;
+            gap: clamp(0.5rem, 1.5vw, 1rem);
+            align-items: flex-start;
+            border: 1px solid var(--border);
+            padding: clamp(0.4rem, 1vw, 0.7rem);
+            background: var(--green-bg);
+        }
+        .step-num {
+            font-family: var(--font-crt);
+            font-size: clamp(1rem, 2vw, 1.5rem);
+            color: var(--green);
+            text-shadow: 0 0 4px rgba(51,255,51,0.2);
+            flex-shrink: 0;
+            width: clamp(1.2rem, 2.5vw, 2rem);
+        }
+        .step-text {
+            font-family: var(--font-body);
+            font-size: clamp(0.6rem, 1.1vw, 0.85rem);
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .step-text strong { color: var(--text-primary); }
+
+        /* ===========================================
+           TWO-COLUMN LAYOUT
+           =========================================== */
+        .two-col {
+            display: flex;
+            gap: clamp(1rem, 3vw, 2rem);
+            margin-top: clamp(0.5rem, 1.5vh, 1rem);
+        }
+        .two-col .col { flex: 1; min-width: 0; }
+        .col-heading {
+            font-family: var(--font-crt);
+            font-size: clamp(0.85rem, 1.3vw, 1.1rem);
+            color: var(--green);
+            margin-bottom: clamp(0.2rem, 0.5vh, 0.4rem);
+            text-shadow: 0 0 4px rgba(51,255,51,0.2);
+        }
+
+        /* ===========================================
+           COMPARISON ROWS
+           =========================================== */
+        .compare-rows {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.3rem, 0.8vh, 0.5rem);
+            margin-top: clamp(0.5rem, 1vh, 0.8rem);
+        }
+        .compare-row {
+            display: flex;
+            align-items: center;
+            gap: clamp(0.5rem, 1.5vw, 1rem);
+            padding: clamp(0.4rem, 1vw, 0.7rem);
+            border: 1px solid var(--border);
+            background: var(--green-bg);
+        }
+        .compare-label {
+            font-family: var(--font-crt);
+            font-size: clamp(0.8rem, 1.2vw, 1rem);
+            color: var(--green);
+            min-width: clamp(6rem, 12vw, 10rem);
+            text-shadow: 0 0 4px rgba(51,255,51,0.2);
+        }
+        .compare-value {
+            font-family: var(--font-body);
+            font-size: clamp(0.65rem, 1.1vw, 0.85rem);
+            color: var(--text-secondary);
+        }
+
+        /* ===========================================
+           ROADMAP
+           =========================================== */
+        .roadmap {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: clamp(0.4rem, 1vw, 0.8rem);
+            margin-top: clamp(0.5rem, 1vh, 0.8rem);
+        }
+        .roadmap-item {
+            border: 1px solid var(--border);
+            padding: clamp(0.4rem, 1vw, 0.7rem);
+            background: var(--green-bg);
+        }
+        .roadmap-date {
+            font-family: var(--font-crt);
+            font-size: clamp(0.75rem, 1.2vw, 1rem);
+            color: var(--green);
+            text-shadow: 0 0 4px rgba(51,255,51,0.2);
+        }
+        .roadmap-desc {
+            font-family: var(--font-body);
+            font-size: clamp(0.55rem, 0.9vw, 0.75rem);
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+            line-height: 1.4;
+        }
+
+        /* ===========================================
+           DIAGRAM SLIDE
+           =========================================== */
+        .diagram-slide .slide-content {
+            padding: clamp(0.8rem, 2vw, 2rem);
+        }
+        .diagram-img {
+            max-width: 100%;
+            max-height: min(70vh, 550px);
+            object-fit: contain;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* ===========================================
+           BIG STAT (hero centered)
+           =========================================== */
+        .big-stat {
+            font-family: var(--font-crt);
+            font-size: clamp(3rem, 10vw, 7rem);
+            color: var(--green);
+            text-shadow: 0 0 10px var(--green-glow), 0 0 30px rgba(51,255,51,0.15);
+            text-align: center;
+            margin: clamp(0.3rem, 1vh, 0.5rem) 0;
+        }
+
+        /* ===========================================
+           SLIDE FOOTER
+           =========================================== */
+        .slide-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: clamp(0.4rem, 1vh, 0.8rem) var(--slide-padding);
+            position: relative;
+            z-index: 5;
+        }
+        .footer-cmd {
+            font-family: var(--font-crt);
+            font-size: clamp(0.7rem, 1vw, 0.85rem);
+            color: var(--green-muted);
+        }
+        .footer-num {
+            font-family: var(--font-body);
+            font-size: var(--tag-size);
+            color: var(--text-dim);
+        }
+        .footer-source {
+            font-family: var(--font-body);
+            font-size: var(--tag-size);
+            color: var(--text-dim);
+            position: absolute;
+            bottom: clamp(1.8rem, 3vh, 2.5rem);
+            right: var(--slide-padding);
+            z-index: 5;
+        }
+
+        /* ===========================================
+           REVEAL ANIMATIONS
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity var(--duration) var(--ease-out-expo),
+                        transform var(--duration) var(--ease-out-expo);
+        }
+        .slide.visible .reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .reveal-d1 { transition-delay: 0.1s; }
+        .reveal-d2 { transition-delay: 0.2s; }
+        .reveal-d3 { transition-delay: 0.3s; }
+        .reveal-d4 { transition-delay: 0.4s; }
+        .reveal-d5 { transition-delay: 0.5s; }
+        .reveal-d6 { transition-delay: 0.6s; }
+
+        /* ===========================================
+           PROGRESS BAR
+           =========================================== */
+        .progress-bar {
+            position: fixed;
+            top: 0; left: 0;
+            height: 2px;
+            background: var(--green);
+            box-shadow: 0 0 6px var(--green-glow);
+            width: 0%;
+            z-index: 9999;
+            transition: width 0.3s ease;
+        }
+
+        /* ===========================================
+           NAV DOTS
+           =========================================== */
+        .nav-dots {
+            position: fixed;
+            right: clamp(0.6rem, 1.5vw, 1rem);
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: clamp(4px, 0.5vh, 7px);
+            z-index: 1000;
+        }
+        .nav-dot {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            background: var(--text-dim);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            padding: 0;
+        }
+        .nav-dot.active {
+            background: var(--green);
+            box-shadow: 0 0 6px var(--green-glow);
+            transform: scale(1.4);
+        }
+
+        /* ===========================================
+           TITLE SLIDE SPECIAL
+           =========================================== */
+        .title-slide .slide-content {
+            align-items: center;
+            text-align: center;
+        }
+        .title-meta {
+            font-family: var(--font-body);
+            font-size: clamp(0.65rem, 1vw, 0.8rem);
+            color: var(--text-dim);
+            margin-top: clamp(0.8rem, 2vh, 1.5rem);
+        }
+
+        /* ===========================================
+           CLOSING SLIDE SPECIAL
+           =========================================== */
+        .closing-title {
+            font-family: var(--font-crt);
+            font-size: clamp(1.8rem, 5vw, 3.5rem);
+            line-height: 1.2;
+            text-align: center;
+        }
+        .closing-title .g { color: var(--green); text-shadow: 0 0 6px var(--green-glow); }
+        .closing-title .w { color: var(--white); }
+        .credits {
+            text-align: center;
+            margin-top: clamp(0.8rem, 2vh, 1.5rem);
+        }
+        .credits p {
+            font-family: var(--font-body);
+            font-size: var(--small-size);
+            color: var(--text-dim);
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Progress bar -->
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- Nav dots -->
+<nav class="nav-dots" id="navDots"></nav>
+
+<!-- ============================================================
+     SLIDE 1 — TITLE
+     ============================================================ -->
+<section class="slide title-slide" data-slide="1">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// ETHEREUM RESEARCH</div>
+        <h1 class="hero-title reveal reveal-d1">
+            <span class="w">Who Holds</span><br>Ethereum's State?<span class="cursor"></span>
+        </h1>
+        <hr class="divider reveal reveal-d2" style="max-width: 180px; margin: 0 auto;">
+        <p class="body-text reveal reveal-d3" style="text-align: center; max-width: 550px; margin-top: clamp(0.3rem, 1vh, 0.6rem);">
+            Partial Statefulness — Rethinking state in a post-ZKEVM world
+        </p>
+        <div class="title-meta reveal reveal-d4">CPerezz &amp; @DanGoron2 · EthCC 2026</div>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ cat README.md</span>
+        <span class="footer-num">1 / 22</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 2 — THE STATUS QUO
+     ============================================================ -->
+<section class="slide" data-slide="2">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// TODAY</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">The</span> Status Quo</h2>
+        <hr class="divider reveal reveal-d1">
+        <ul class="points reveal reveal-d2">
+            <li><strong>Every validator holds ~280 GB of state</strong></li>
+            <li><strong>Full re-execution</strong> of every transaction</li>
+            <li><strong>State replicated</strong> across ~10,000+ validators worldwide</li>
+            <li><strong>Geographic distribution</strong> makes censorship nearly impossible</li>
+        </ul>
+        <div class="stat-row cols-3 reveal reveal-d3">
+            <div class="stat">
+                <div class="stat-num">10,000+</div>
+                <div class="stat-label">Validators</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num">280 GB</div>
+                <div class="stat-label">State per node</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num">Global</div>
+                <div class="stat-label">Distribution</div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ eth.syncing</span>
+        <span class="footer-num">2 / 22</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 3 — THE CENTRALIZATION TRAP
+     ============================================================ -->
+<section class="slide" data-slide="3">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// THE SHIFT</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">ZKEVMs</span> Change Everything</h2>
+        <hr class="divider reveal reveal-d1">
+        <ul class="points reveal reveal-d2">
+            <li><strong>A SNARK proof replaces re-execution</strong> — verification in milliseconds</li>
+            <li><strong>Validators don't need state anymore</strong> — rational actors will drop it</li>
+            <li><strong>State concentrates in ~50 operators</strong> — builders and RPC providers</li>
+        </ul>
+        <div class="pull-quote reveal reveal-d3">
+            <p>"If verification is free, why pay for <span class="g">state</span>?"</p>
+        </div>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ zkvm --verify block.proof</span>
+        <span class="footer-num">3 / 22</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 4 — [DIAGRAM] STATE COLLAPSE
+     ============================================================ -->
+<section class="slide diagram-slide" data-slide="4">
+    <div class="slide-content" style="align-items: center;">
+        <img src="assets/state-collapse.png" alt="State distribution collapse: 10,000 validators to ~50 operators" class="diagram-img reveal">
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ network --state-holders</span>
+        <span class="footer-num">4 / 22</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 5 — STATE EXPIRY IS NOT THE ANSWER
+     ============================================================ -->
+<section class="slide" data-slide="5">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// DEAD END</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">State Expiry</span> Is Not the Answer</h2>
+        <hr class="divider reveal reveal-d1">
+        <div class="grid-3 reveal reveal-d2">
+            <div class="card">
+                <div class="card-title">> UX Nightmare</div>
+                <div class="card-body">Accounts "expire" after 6 months of inactivity. Users discover their funds are inaccessible.</div>
+            </div>
+            <div class="card">
+                <div class="card-title">> Protocol Complexity</div>
+                <div class="card-body">Address space extension, resurrection mechanics. Protocol complexity skyrockets.</div>
+            </div>
+            <div class="card">
+                <div class="card-title">> Doesn't Solve It</div>
+                <div class="card-body">Wallets still need expired state from the same centralized providers to bundle revival + tx.</div>
+            </div>
+        </div>
+        <div class="pull-quote reveal reveal-d3">
+            <p>"State expiry adds protocol complexity. The <span class="g">state remains centralized</span> regardless."</p>
+        </div>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ state-expiry --status REJECTED</span>
+        <span class="footer-num">5 / 22</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 6 — WHAT IS PARTIAL STATEFULNESS
+     ============================================================ -->
+<section class="slide" data-slide="6">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// PARTIAL STATEFULNESS</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Hold Only</span> What You Care About</h2>
+        <hr class="divider reveal reveal-d1">
+        <div class="grid-3 reveal reveal-d2">
+            <div class="card">
+                <div class="card-title">> Full Account Trie</div>
+                <div class="card-body">Every account's balance, nonce, codeHash + all intermediate MPT nodes (~50 GB)</div>
+            </div>
+            <div class="card">
+                <div class="card-title">> Selective Storage</div>
+                <div class="card-body">Choose which contracts to track — USDC, DAI, Uniswap. Full storage tries for those.</div>
+            </div>
+            <div class="card">
+                <div class="card-title">> No Re-execution</div>
+                <div class="card-body">Follow chain tip via Block Access Lists (BALs). Apply state diffs directly.</div>
+            </div>
+        </div>
+        <div class="stat-row cols-2 reveal reveal-d3">
+            <div class="stat">
+                <div class="stat-num">59 GB</div>
+                <div class="stat-label">PS node on mainnet</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num">79%</div>
+                <div class="stat-label">Reduction vs full state</div>
+            </div>
+        </div>
+    </div>
+    <span class="footer-source">Source: go-ethereum PR #33764 (mainnet)</span>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ geth --partial-state</span>
+        <span class="footer-num">6 / 22</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 7 — [DIAGRAM] PS NODE ARCHITECTURE
+     ============================================================ -->
+<section class="slide diagram-slide" data-slide="7">
+    <div class="slide-content" style="align-items: center;">
+        <img src="assets/ps-node-architecture.png" alt="Partial stateful node architecture: account trie + tracked storage + untracked roots" class="diagram-img reveal">
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ du -sh ~/.ethereum/partial/</span>
+        <span class="footer-num">7 / 22</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 8 — THE PROOF PATH
+     ============================================================ -->
+<section class="slide" data-slide="8">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// ARCHITECTURE</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Prove</span> What You Hold</h2>
+        <hr class="divider reveal reveal-d1">
+        <p class="body-text reveal reveal-d2">A PS node produces full Merkle proofs for tracked contracts. The proof path traverses two trie layers:</p>
+        <div class="code-path reveal reveal-d3">
+            storage slot → storage trie → storage root<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;→ account leaf → account trie → state root
+        </div>
+        <p class="body-text reveal reveal-d4">Cryptographic certainty, not trust. Proofs can be <span class="g">batched</span> across PS nodes sharing the same state root.</p>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ eth_getProof --contract 0xA0b8...</span>
+        <span class="footer-num">8 / 22</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 9 — [DIAGRAM] MPT PROOF PATH
+     ============================================================ -->
+<section class="slide diagram-slide" data-slide="9">
+    <div class="slide-content" style="align-items: center;">
+        <img src="assets/mpt-proof-path.png" alt="MPT proof path: glowing trail from storage slot leaf through account trie to state root" class="diagram-img reveal">
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ mpt --trace-path 0xA0b8::slot[3]</span>
+        <span class="footer-num">9 / 22</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 10 — THE SYNC PROCESS
+     ============================================================ -->
+<section class="slide" data-slide="10">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// SYNC</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Sync,</span> Don't Execute</h2>
+        <hr class="divider reveal reveal-d1">
+        <div class="steps reveal reveal-d2">
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-text"><strong>Snap sync account trie</strong> — download all accounts + intermediate MPT nodes (~50 GB)</div>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-text"><strong>Snap sync tracked storage</strong> — download full storage tries for selected contracts</div>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <div class="step-text"><strong>Gap fill via BALs</strong> — process Block Access Lists from pivot to HEAD — no re-execution</div>
+            </div>
+            <div class="step">
+                <div class="step-num">4</div>
+                <div class="step-text"><strong>Follow the tip</strong> — apply BAL diffs per block. Serve proofs for tracked state.</div>
+            </div>
+        </div>
+        <p class="body-text reveal reveal-d3" style="margin-top: clamp(0.3rem, 1vh, 0.6rem); font-size: var(--small-size); color: var(--text-muted);">
+            BALs (EIP-7928) record all state changes per block — consensus-enforced completeness. Landing in Glamsterdam 2026.
+        </p>
+    </div>
+    <span class="footer-source">Source: EIP-7928 — eips.ethereum.org/EIPS/eip-7928</span>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ geth --syncmode partial</span>
+        <span class="footer-num">10 / 22</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 11 — FOCIL / CENSORSHIP RESISTANCE
+     ============================================================ -->
+<section class="slide" data-slide="11">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// CENSORSHIP RESISTANCE</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Inclusion Lists</span> Need State</h2>
+        <hr class="divider reveal reveal-d1">
+        <ul class="points reveal reveal-d2">
+            <li><strong>FOCIL (EIP-7805):</strong> 16 includers per slot select txs from the mempool</li>
+            <li>Includers need <strong>account data</strong> to pick VALID transactions</li>
+            <li>Valid txs in ILs = <strong>harder for builders to justify exclusion</strong></li>
+            <li>PS drops state from ~280 GB to ~59 GB → <strong>dramatically expands the includer pool</strong></li>
+        </ul>
+        <div class="pull-quote reveal reveal-d3">
+            <p>"Account data makes includers <span class="g">effective</span>, not just eligible. Without PS, only builders and RPC providers can be includers post-ZKEVM."</p>
+        </div>
+    </div>
+    <span class="footer-source">Source: EIP-7805 — eips.ethereum.org/EIPS/eip-7805</span>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ focil --include-from-mempool</span>
+        <span class="footer-num">11 / 22</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 12 — [DIAGRAM] FOCIL INCLUSION FLOW
+     ============================================================ -->
+<section class="slide diagram-slide" data-slide="12">
+    <div class="slide-content" style="align-items: center;">
+        <img src="assets/focil-flow.png" alt="FOCIL inclusion flow: mempool → PS node → inclusion list → block builder → attesters" class="diagram-img reveal">
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ focil --status</span>
+        <span class="footer-num">12 / 22</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 13 — STATE MARKETS
+     ============================================================ -->
+<section class="slide" data-slide="13">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// ECONOMICS</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">State</span> Markets</h2>
+        <hr class="divider reveal reveal-d1">
+        <p class="body-text reveal reveal-d2" style="margin-bottom: clamp(0.3rem, 0.8vh, 0.5rem);">PS creates a natural market for state serving — emergent, out-of-protocol, many flavours.</p>
+        <div class="grid-2 reveal reveal-d3">
+            <div class="card">
+                <div class="card-title">> Load Balancers</div>
+                <div class="card-body">Marketplaces route queries to PS nodes tracking relevant contracts. Pick and choose.</div>
+            </div>
+            <div class="card">
+                <div class="card-title">> Hot / Cold Pricing</div>
+                <div class="card-body">Hot state = cheap (many holders). Cold state = premium (few holders, higher margin).</div>
+            </div>
+            <div class="card">
+                <div class="card-title">> Domain Specialization</div>
+                <div class="card-body">DeFi nodes, NFT nodes, protocol-specific. Agents, wallets, indexers as consumers.</div>
+            </div>
+            <div class="card">
+                <div class="card-title">> Attestation Analogy</div>
+                <div class="card-body">One query ≈ nothing. Millions/year ≈ real revenue. Economics work at scale, not per-event.</div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ state-market --list-providers</span>
+        <span class="footer-num">13 / 22</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 14 — [DIAGRAM] STATE MARKET FLYWHEEL
+     ============================================================ -->
+<section class="slide diagram-slide" data-slide="14">
+    <div class="slide-content" style="align-items: center;">
+        <img src="assets/state-market-flywheel.png" alt="State market flywheel: lower cost → more operators → geo distribution → better latency → more queries → more revenue" class="diagram-img reveal">
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ flywheel --momentum</span>
+        <span class="footer-num">14 / 22</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 15 — DECENTRALIZED STATE REPLICATION
+     ============================================================ -->
+<section class="slide" data-slide="15">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// THE VALUE</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Natural</span> Redundancy</h2>
+        <hr class="divider reveal reveal-d1">
+        <div class="compare-rows reveal reveal-d2">
+            <div class="compare-row">
+                <span class="compare-label">Today</span>
+                <span class="compare-value">10,000+ validators replicate state globally</span>
+            </div>
+            <div class="compare-row">
+                <span class="compare-label">Post-ZKEVM</span>
+                <span class="compare-value">~50 operators hold state — centralized infrastructure</span>
+            </div>
+            <div class="compare-row">
+                <span class="compare-label" style="color: var(--green);">With PS</span>
+                <span class="compare-value">Thousands of specialized nodes, each holding their slice</span>
+            </div>
+        </div>
+        <p class="body-text reveal reveal-d3" style="margin-top: clamp(0.5rem, 1vh, 0.8rem);">
+            PS achieves what state expiry promises — through <span class="g">market forces</span>, not protocol mandates. No protocol changes beyond BALs. Users never experience "account expired."
+        </p>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ state --replication-factor</span>
+        <span class="footer-num">15 / 22</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 16 — [DIAGRAM] REDUNDANCY GRADIENT
+     ============================================================ -->
+<section class="slide diagram-slide" data-slide="16">
+    <div class="slide-content" style="align-items: center;">
+        <img src="assets/redundancy-gradient.png" alt="Redundancy gradient: USDC replicated by thousands, cold state by few" class="diagram-img reveal">
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ state --redundancy-map</span>
+        <span class="footer-num">16 / 22</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 17 — VOPS: THE VALIDATOR FLOOR
+     ============================================================ -->
+<section class="slide" data-slide="17">
+    <div class="slide-content" style="align-items: center; text-align: center;">
+        <div class="eyebrow reveal">// VOPS</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">The Validator</span> Floor</h2>
+        <hr class="divider reveal reveal-d1" style="max-width: 180px; margin: 0 auto;">
+        <div class="big-stat reveal reveal-d2">8.4 GB</div>
+        <p class="body-text reveal reveal-d3" style="max-width: 600px; text-align: center;">
+            Validity-Only Partial Statelessness — the minimum to stay useful post-ZKEVM.
+        </p>
+        <ul class="points reveal reveal-d4" style="text-align: left; max-width: 600px; margin-top: clamp(0.3rem, 1vh, 0.6rem);">
+            <li>Just 4 fields per account: address, nonce, balance, codeFlag (~40 bytes)</li>
+            <li>Enables: <strong>mempool management + FOCIL inclusion + SNARK verification</strong></li>
+            <li>Any PS node is also a VOPS node (VOPS is a subset)</li>
+            <li>Post-ZKEVM: the cost of keeping Ethereum <strong>censorship-resistant</strong></li>
+        </ul>
+    </div>
+    <span class="footer-source">Source: ethresear.ch — VOPS post (241M accounts × ~40 bytes)</span>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ vops --min-requirements</span>
+        <span class="footer-num">17 / 22</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 18 — AA VS STATELESSNESS
+     ============================================================ -->
+<section class="slide" data-slide="18">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// OPEN QUESTION</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Account Abstraction</span> vs Statelessness</h2>
+        <hr class="divider reveal reveal-d1">
+        <p class="body-text reveal reveal-d2">
+            Statelessness wants minimal state for validation. AA wants programmable validation with arbitrary state access. These pull in <strong>opposite directions</strong>.
+        </p>
+        <div class="pull-quote reveal reveal-d3">
+            <p>"The more state validation requires — and the more <span class="g">arbitrary</span> it can be — the harder it becomes for nodes to keep the mempool healthy."</p>
+        </div>
+        <p class="body-text reveal reveal-d4" style="margin-top: clamp(0.3rem, 1vh, 0.6rem);">
+            The AA scheme that makes validation <span class="g">NOT depend on state</span> is the best for statelessness. Schemed Transactions (EIP-8130) are fully PS-compatible. Frame Transactions (EIP-8141) need witness-carrying (~12-20 KB per tx).
+        </p>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ mempool --validate-tx --state-required ?</span>
+        <span class="footer-num">18 / 22</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 19 — [DIAGRAM] VALIDATION SPECTRUM
+     ============================================================ -->
+<section class="slide diagram-slide" data-slide="19">
+    <div class="slide-content" style="align-items: center;">
+        <img src="assets/validation-spectrum.png" alt="Validation spectrum: Schemed Tx (stateless, PS compatible) to Frame Tx (stateful, needs witnesses)" class="diagram-img reveal">
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ aa --compatibility-check</span>
+        <span class="footer-num">19 / 22</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 20 — THE INSEPARABLE GRAPH
+     ============================================================ -->
+<section class="slide" data-slide="20">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// HONEST CRITIQUE</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">The Inseparable</span> Graph</h2>
+        <hr class="divider reveal reveal-d1">
+        <p class="body-text reveal reveal-d2">
+            A fair critique: DeFi state is deeply interconnected. Serve USDC → need DEX pools → need routers → the closure is "most of DeFi."
+        </p>
+        <div class="two-col reveal reveal-d3">
+            <div class="col">
+                <div class="col-heading">> When valid</div>
+                <ul class="points">
+                    <li>Large aggregators (CoW Swap, 1inch)</li>
+                    <li>MEV searchers needing complete state</li>
+                    <li>Complex multi-hop routing</li>
+                </ul>
+            </div>
+            <div class="col">
+                <div class="col-heading">> When NOT valid</div>
+                <ul class="points">
+                    <li>VOPS nodes (account data only)</li>
+                    <li>ENS, privacy protocols</li>
+                    <li>Simple balance queries with proofs</li>
+                    <li>Specialized nodes serving one piece</li>
+                </ul>
+            </div>
+        </div>
+        <div class="pull-quote reveal reveal-d4">
+            <p>"PS nodes don't serve everything. They serve <span class="g">one piece</span>. Proofs batch across nodes sharing the same state root."</p>
+        </div>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ state --graph-closure USDC</span>
+        <span class="footer-num">20 / 22</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 21 — IMPLEMENTATION
+     ============================================================ -->
+<section class="slide" data-slide="21">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// ALREADY REAL</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Already</span> Shipping</h2>
+        <hr class="divider reveal reveal-d1">
+        <div class="code-block reveal reveal-d2"><span class="comment"># Run a partial stateful node</span>
+<span class="cmd">geth</span> <span class="flag">--partial-state</span> \
+     <span class="flag">--partial-state.contracts</span> 0xA0b8...USDC,0x6B17...DAI \
+     <span class="flag">--partial-state.chain-retention</span> 1024</div>
+        <div class="stat-row cols-2 reveal reveal-d3">
+            <div class="stat">
+                <div class="stat-num">59 GB</div>
+                <div class="stat-label">Mainnet (USDC + DAI)</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num">79%</div>
+                <div class="stat-label">vs full state</div>
+            </div>
+        </div>
+        <div class="roadmap reveal reveal-d4">
+            <div class="roadmap-item">
+                <div class="roadmap-date">Glamsterdam '26</div>
+                <div class="roadmap-desc">BALs land — PS becomes possible</div>
+            </div>
+            <div class="roadmap-item">
+                <div class="roadmap-date">Hegota '26</div>
+                <div class="roadmap-desc">AA decision impacts PS compatibility</div>
+            </div>
+            <div class="roadmap-item">
+                <div class="roadmap-date">Next forks</div>
+                <div class="roadmap-desc">ZKEVMs — PS becomes essential</div>
+            </div>
+        </div>
+        <p class="body-text reveal reveal-d5" style="margin-top: clamp(0.3rem, 0.8vh, 0.5rem); font-size: var(--small-size); color: var(--text-muted);">
+            go-ethereum PR #33764 — only geth for now. Opportunity for other clients.
+        </p>
+    </div>
+    <span class="footer-source">Source: github.com/ethereum/go-ethereum/pull/33764</span>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ git log --oneline ethereum/go-ethereum#33764</span>
+        <span class="footer-num">21 / 22</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 22 — CTA + CREDITS
+     ============================================================ -->
+<section class="slide" data-slide="22">
+    <div class="slide-content" style="align-items: center; text-align: center;">
+        <div class="closing-title reveal">
+            <span class="g">Try it.</span> <span class="w">Break it.</span> <span class="g">Tell us.</span><span class="cursor"></span>
+        </div>
+        <hr class="divider reveal reveal-d1" style="max-width: 180px; margin: clamp(0.5rem, 1.5vh, 1rem) auto;">
+        <ul class="points reveal reveal-d2" style="text-align: left; max-width: 500px;">
+            <li>Run a PS node after Glamsterdam ships</li>
+            <li>Provide feedback on the implementation</li>
+            <li>Help design state markets</li>
+        </ul>
+        <div class="credits reveal reveal-d3">
+            <p>CPerezz &amp; @DanGoron2</p>
+            <p>ethresear.ch/t/vops/22236</p>
+            <p>github.com/ethereum/go-ethereum/pull/33764</p>
+        </div>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ exit 0</span>
+        <span class="footer-num">22 / 22</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     JAVASCRIPT: SLIDE PRESENTATION CONTROLLER
+     ============================================================ -->
+<script>
+class SlidePresentation {
+    constructor() {
+        this.slides = document.querySelectorAll('.slide');
+        this.currentSlide = 0;
+        this.isAnimating = false;
+        this.touchStartY = 0;
+
+        this.setupIntersectionObserver();
+        this.setupKeyboardNav();
+        this.setupTouchNav();
+        this.setupWheelNav();
+        this.setupProgressBar();
+        this.setupNavDots();
+    }
+
+    /* --- Intersection Observer: add .visible for animations --- */
+    setupIntersectionObserver() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    // Update current slide index
+                    const idx = Array.from(this.slides).indexOf(entry.target);
+                    if (idx !== -1) {
+                        this.currentSlide = idx;
+                        this.updateProgressBar();
+                        this.updateNavDots();
+                    }
+                }
+            });
+        }, { threshold: 0.5 });
+
+        this.slides.forEach(slide => observer.observe(slide));
+    }
+
+    /* --- Keyboard: arrows, space, page up/down --- */
+    setupKeyboardNav() {
+        document.addEventListener('keydown', (e) => {
+            if (this.isAnimating) return;
+            switch (e.key) {
+                case 'ArrowDown':
+                case 'ArrowRight':
+                case ' ':
+                case 'PageDown':
+                    e.preventDefault();
+                    this.goToSlide(this.currentSlide + 1);
+                    break;
+                case 'ArrowUp':
+                case 'ArrowLeft':
+                case 'PageUp':
+                    e.preventDefault();
+                    this.goToSlide(this.currentSlide - 1);
+                    break;
+                case 'Home':
+                    e.preventDefault();
+                    this.goToSlide(0);
+                    break;
+                case 'End':
+                    e.preventDefault();
+                    this.goToSlide(this.slides.length - 1);
+                    break;
+            }
+        });
+    }
+
+    /* --- Touch / Swipe --- */
+    setupTouchNav() {
+        document.addEventListener('touchstart', (e) => {
+            this.touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        document.addEventListener('touchend', (e) => {
+            const diff = this.touchStartY - e.changedTouches[0].clientY;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) this.goToSlide(this.currentSlide + 1);
+                else this.goToSlide(this.currentSlide - 1);
+            }
+        }, { passive: true });
+    }
+
+    /* --- Mouse Wheel --- */
+    setupWheelNav() {
+        let lastWheel = 0;
+        document.addEventListener('wheel', (e) => {
+            const now = Date.now();
+            if (now - lastWheel < 800) return;
+            lastWheel = now;
+            if (e.deltaY > 0) this.goToSlide(this.currentSlide + 1);
+            else if (e.deltaY < 0) this.goToSlide(this.currentSlide - 1);
+        }, { passive: true });
+    }
+
+    /* --- Navigate to slide --- */
+    goToSlide(index) {
+        if (index < 0 || index >= this.slides.length) return;
+        this.isAnimating = true;
+        this.currentSlide = index;
+        this.slides[index].scrollIntoView({ behavior: 'smooth' });
+        this.updateProgressBar();
+        this.updateNavDots();
+        setTimeout(() => { this.isAnimating = false; }, 600);
+    }
+
+    /* --- Progress Bar --- */
+    setupProgressBar() {
+        this.progressBar = document.getElementById('progressBar');
+        this.updateProgressBar();
+    }
+    updateProgressBar() {
+        if (!this.progressBar) return;
+        const progress = ((this.currentSlide) / (this.slides.length - 1)) * 100;
+        this.progressBar.style.width = progress + '%';
+    }
+
+    /* --- Nav Dots --- */
+    setupNavDots() {
+        const nav = document.getElementById('navDots');
+        if (!nav) return;
+        this.slides.forEach((_, i) => {
+            const dot = document.createElement('button');
+            dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+            dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+            dot.addEventListener('click', () => this.goToSlide(i));
+            nav.appendChild(dot);
+        });
+        this.navDotElements = nav.querySelectorAll('.nav-dot');
+    }
+    updateNavDots() {
+        if (!this.navDotElements) return;
+        this.navDotElements.forEach((dot, i) => {
+            dot.classList.toggle('active', i === this.currentSlide);
+        });
+    }
+}
+
+/* Initialize */
+document.addEventListener('DOMContentLoaded', () => {
+    new SlidePresentation();
+});
+</script>
+
+</body>
+</html>
