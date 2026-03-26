@@ -813,7 +813,7 @@
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ cd /partial-statefulness</span>
-        <span class="footer-num">6 / 26</span>
+        <span class="footer-num">5 / 26</span>
     </div>
 </section>
 
@@ -909,7 +909,7 @@
             <div class="step"><div class="step-num">4</div><div class="step-text"><strong>Follow the tip</strong> — apply BAL diffs per block. Serve proofs for tracked state.</div></div>
         </div>
         <p class="body-text reveal reveal-d3" style="margin-top: clamp(0.3rem, 1vh, 0.6rem); font-size: var(--small-size); color: var(--text-muted);">
-            BALs (EIP-7928) record all state changes per block — consensus-enforced completeness. Landing in Glamsterdam 2026.
+            BALs (EIP-7928) record all state changes per block — consensus-enforced completeness. Security: signing committee signature verification (pre-ZKEVM), SNARK proofs (post-ZKEVM). Landing in Glamsterdam 2026.
         </p>
     </div>
     <span class="footer-source">Source: EIP-7928 — eips.ethereum.org/EIPS/eip-7928</span>
@@ -980,7 +980,7 @@
             <li>PS drops state from ~280 GB to ~59 GB → <strong>dramatically expands the includer pool</strong></li>
         </ul>
         <div class="pull-quote reveal reveal-d3">
-            <p>"Account data makes includers <span class="g">effective</span>, not just eligible. Without PS, only builders and RPC providers can be includers post-ZKEVM."</p>
+            <p>"A provider pressured to stop serving state for targeted addresses → users can't build txs → includers never see them → <span class="g">invisible censorship</span> without touching the protocol."</p>
         </div>
     </div>
     <span class="footer-source">Source: EIP-7805 — eips.ethereum.org/EIPS/eip-7805</span>
@@ -1026,7 +1026,7 @@
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ state-market --init</span>
-        <span class="footer-num">16 / 26</span>
+        <span class="footer-num">15 / 26</span>
     </div>
 </section>
 
@@ -1044,6 +1044,7 @@
                     <li><strong>Hot / Cold pricing</strong> — hot state = cheap (many holders), cold state = premium (few holders)</li>
                     <li><strong>Domain specialization</strong> — DeFi nodes, NFT nodes, protocol-specific. Agents, wallets, indexers as consumers.</li>
                     <li><strong>Attestation analogy</strong> — one query ≈ nothing. Millions/year ≈ real revenue. Economics work at scale.</li>
+                    <li><strong>vs Portal Network</strong> — PS solves Portal's biggest gap: <span class="g">revenue and motivation</span> to hold state.</li>
                 </ul>
             </div>
             <div class="merged-img">
@@ -1053,7 +1054,7 @@
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ state-market --list-providers</span>
-        <span class="footer-num">17 / 26</span>
+        <span class="footer-num">16 / 26</span>
     </div>
 </section>
 
@@ -1065,27 +1066,28 @@
         <div class="eyebrow reveal">// CONSUMERS</div>
         <h2 class="slide-title reveal reveal-d1"><span class="w">Who</span> Buys State?<span class="cursor"></span></h2>
         <hr class="divider reveal reveal-d1">
-        <div class="grid-3 reveal reveal-d2">
+        <div class="grid-2 reveal reveal-d2">
             <div class="card">
                 <div class="card-title">> Protocols & DAOs</div>
-                <div class="card-body">Uniswap DAO running PS nodes for Uniswap contracts isn't charity — it's infrastructure ROI. State availability directly affects tx success rate.</div>
+                <div class="card-body">Uniswap DAO running PS nodes for Uniswap contracts isn't charity — it's infrastructure ROI. State availability directly affects tx success.</div>
             </div>
             <div class="card">
                 <div class="card-title">> Cross-chain Bridges</div>
-                <div class="card-body">ZK bridges need L1 state proofs for verification. PS nodes serve cryptographic proofs — trustless cross-chain without full L1 nodes.</div>
+                <div class="card-body">ZK bridges need L1 state proofs. PS nodes serve cryptographic proofs — trustless cross-chain without full L1 nodes.</div>
+            </div>
+            <div class="card">
+                <div class="card-title">> AI Agents</div>
+                <div class="card-body">Autonomous agents managing funds need verifiable state — proofs, not promises. PS nodes are the trust layer centralized RPC can't provide.</div>
             </div>
             <div class="card">
                 <div class="card-title">> Restaking (AVS)</div>
-                <div class="card-body">State serving as an Actively Validated Service. Operators earn rewards through restaking economics — no need to invent new payment infra.</div>
+                <div class="card-body">State serving as an Actively Validated Service. Operators earn through restaking economics — no new payment infra needed.</div>
             </div>
-        </div>
-        <div class="pull-quote reveal reveal-d3">
-            <p>"State markets route queries to specialized nodes. <span class="g">Load balancers</span> aggregate, <span class="g">operators</span> compete, <span class="g">users</span> get proofs."</p>
         </div>
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ state-market --consumers</span>
-        <span class="footer-num">18 / 26</span>
+        <span class="footer-num">17 / 26</span>
     </div>
 </section>
 
@@ -1117,7 +1119,7 @@
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ state --replication-factor</span>
-        <span class="footer-num">19 / 26</span>
+        <span class="footer-num">18 / 26</span>
     </div>
 </section>
 
@@ -1130,7 +1132,7 @@
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ state --redundancy-map</span>
-        <span class="footer-num">110 / 26</span>
+        <span class="footer-num">19 / 26</span>
     </div>
 </section>
 
@@ -1151,6 +1153,7 @@
             <li>Enables: <strong>mempool management + FOCIL inclusion + SNARK verification</strong></li>
             <li>Any PS node is also a VOPS node (VOPS is a subset)</li>
             <li>Post-ZKEVM: the cost of keeping Ethereum <strong>censorship-resistant</strong></li>
+            <li>Scaling caveat: account trie grows with account count — if AI agents drive exponential growth, this is the unknown vector</li>
         </ul>
     </div>
     <span class="footer-source">Source: ethresear.ch — VOPS post (241M accounts × ~40 bytes)</span>
@@ -1279,7 +1282,7 @@
     <span class="footer-source">Source: github.com/ethereum/go-ethereum/pull/33764</span>
     <div class="slide-footer">
         <span class="footer-cmd">$ git log --oneline ethereum/go-ethereum#33764</span>
-        <span class="footer-num">26 / 26</span>
+        <span class="footer-num">25 / 26</span>
     </div>
 </section>
 
@@ -1305,7 +1308,7 @@
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ exit 0</span>
-        <span class="footer-num">27 / 26</span>
+        <span class="footer-num">26 / 26</span>
     </div>
 </section>
 
