@@ -486,6 +486,44 @@
         }
 
         /* ===========================================
+           ALERT BOX (amber/warning — breaks green monotone)
+           =========================================== */
+        .alert-box {
+            border: 1px solid #f97316;
+            background: rgba(249, 115, 22, 0.05);
+            padding: clamp(0.6rem, 1.5vw, 1rem);
+            margin-top: clamp(0.5rem, 1.5vh, 1rem);
+            position: relative;
+        }
+        .alert-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #f97316, transparent);
+            opacity: 0.6;
+        }
+        .alert-prefix {
+            font-family: var(--font-crt);
+            font-size: clamp(0.7rem, 1vw, 0.85rem);
+            color: #f97316;
+            letter-spacing: 0.15em;
+            margin-bottom: clamp(0.2rem, 0.5vh, 0.4rem);
+            text-shadow: 0 0 6px rgba(249, 115, 22, 0.3);
+        }
+        .alert-box p {
+            font-family: var(--font-body);
+            font-size: var(--body-size);
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        .alert-box .amber {
+            color: #f97316;
+            font-weight: 600;
+            text-shadow: 0 0 6px rgba(249, 115, 22, 0.4);
+        }
+
+        /* ===========================================
            ROADMAP
            =========================================== */
         .roadmap {
@@ -732,7 +770,7 @@
         <p class="body-text reveal reveal-d3" style="text-align: center; max-width: 550px; margin-top: clamp(0.3rem, 1vh, 0.6rem);">
             Partial Statefulness — Rethinking state in a post-ZKEVM world
         </p>
-        <div class="title-meta reveal reveal-d4">CPerezz &amp; @DanGoron2 · EthCC 2026</div>
+        <div class="title-meta reveal reveal-d4">CPerezz · EthCC 2026</div>
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ cat README.md</span>
@@ -761,7 +799,7 @@
         </div>
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ eth.syncing</span>
+        <span class="footer-cmd">$ du -sh /ethereum/geth/nodes/</span>
         <span class="footer-num">2 / 26</span>
     </div>
 </section>
@@ -914,7 +952,7 @@
     </div>
     <span class="footer-source">Source: EIP-7928 — eips.ethereum.org/EIPS/eip-7928</span>
     <div class="slide-footer">
-        <span class="footer-cmd">$ geth --syncmode partial</span>
+        <span class="footer-cmd">$ geth snap-sync --partial-state --contracts USDC,DAI</span>
         <span class="footer-num">9 / 26</span>
     </div>
 </section>
@@ -979,8 +1017,9 @@
             <li>Valid txs in ILs = <strong>harder for builders to justify exclusion</strong></li>
             <li>PS drops state from ~280 GB to ~59 GB → <strong>dramatically expands the includer pool</strong></li>
         </ul>
-        <div class="pull-quote reveal reveal-d3">
-            <p>"A provider pressured to stop serving state for targeted addresses → users can't build txs → includers never see them → <span class="g">invisible censorship</span> without touching the protocol."</p>
+        <div class="alert-box reveal reveal-d3">
+            <div class="alert-prefix">[ALERT] CENSORSHIP VECTOR</div>
+            <p>A provider pressured to stop serving state for targeted addresses → users can't build txs → includers never see them → <span class="amber">invisible censorship</span> without touching the protocol.</p>
         </div>
     </div>
     <span class="footer-source">Source: EIP-7805 — eips.ethereum.org/EIPS/eip-7805</span>
@@ -998,7 +1037,7 @@
         <img src="assets/il-validation-pipeline.png" alt="IL validation pipeline: account state, gas economics, signature, format checks filter txs into inclusion list" class="diagram-img reveal">
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ il --validate-pipeline</span>
+        <span class="footer-cmd">$ tx.validate --nonce --balance --gas --sig</span>
         <span class="footer-num">13 / 26</span>
     </div>
 </section>
@@ -1011,7 +1050,7 @@
         <img src="assets/focil-flow.png" alt="FOCIL inclusion flow: mempool → PS node → inclusion list → block builder → attesters" class="diagram-img reveal">
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ focil --status</span>
+        <span class="footer-cmd">$ focil --trace tx:mempool→il→block→attesters</span>
         <span class="footer-num">14 / 26</span>
     </div>
 </section>
@@ -1118,7 +1157,7 @@
         </p>
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ state --replication-factor</span>
+        <span class="footer-cmd">$ snap-sync --list-peers --serving-ranges</span>
         <span class="footer-num">18 / 26</span>
     </div>
 </section>
@@ -1158,7 +1197,7 @@
     </div>
     <span class="footer-source">Source: ethresear.ch — VOPS post (241M accounts × ~40 bytes)</span>
     <div class="slide-footer">
-        <span class="footer-cmd">$ vops --min-requirements</span>
+        <span class="footer-cmd">$ du -sh /vops/accounts.db  # 8.4 GB</span>
         <span class="footer-num">20 / 26</span>
     </div>
 </section>
@@ -1301,8 +1340,7 @@
             <li>Help design state markets</li>
         </ul>
         <div class="credits reveal reveal-d3">
-            <p>CPerezz &amp; @DanGoron2</p>
-            <p>ethresear.ch/t/vops/22236</p>
+            <p>CPerezz</p>
             <p>github.com/ethereum/go-ethereum/pull/33764</p>
         </div>
     </div>
