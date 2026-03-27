@@ -36,13 +36,13 @@
             /* Typography — MUST use clamp() */
             --font-crt: 'VT323', monospace;
             --font-body: 'IBM Plex Mono', monospace;
-            --title-size: clamp(2rem, 6vw, 4.5rem);
-            --h2-size: clamp(1.4rem, 3.5vw, 2.5rem);
-            --h3-size: clamp(0.9rem, 2vw, 1.3rem);
-            --body-size: clamp(0.7rem, 1.3vw, 1rem);
-            --small-size: clamp(0.6rem, 0.9vw, 0.8rem);
-            --tag-size: clamp(0.55rem, 0.8vw, 0.7rem);
-            --stat-size: clamp(1.8rem, 5vw, 3.5rem);
+            --title-size: clamp(2.2rem, 7vw, 5rem);
+            --h2-size: clamp(1.5rem, 4vw, 2.8rem);
+            --h3-size: clamp(1rem, 2.2vw, 1.5rem);
+            --body-size: clamp(0.8rem, 1.5vw, 1.15rem);
+            --small-size: clamp(0.65rem, 1vw, 0.9rem);
+            --tag-size: clamp(0.6rem, 0.9vw, 0.8rem);
+            --stat-size: clamp(2rem, 5.5vw, 4rem);
 
             /* Spacing — MUST use clamp() */
             --slide-padding: clamp(1.5rem, 5vw, 5rem);
@@ -790,7 +790,7 @@
             <li><strong>~13,900 nodes</strong> run 1M+ validator keys on the network</li>
             <li><strong>Re-execution requires</strong> every full node to hold ~280 GB of state</li>
             <li>This creates <strong>natural replication</strong> — state distributed across thousands of machines</li>
-            <li><strong>Geographic distribution</strong> makes censorship nearly impossible</li>
+            <li><strong>Geographic distribution</strong> makes censoring state access nearly impossible</li>
         </ul>
         <div class="stat-row cols-3 reveal reveal-d3">
             <div class="stat"><div class="stat-num">13,900</div><div class="stat-label">Nodes</div></div>
@@ -814,7 +814,7 @@
         <hr class="divider reveal reveal-d1">
         <ul class="points reveal reveal-d2">
             <li><strong>A SNARK proof replaces re-execution</strong> — verification in milliseconds</li>
-            <li><strong>The mandate disappears</strong> — full nodes no longer need state to validate</li>
+            <li><strong>The requirement disappears</strong> — full nodes no longer need state to validate</li>
             <li><strong>State concentrates</strong> in machines with economic reasons to hold it — builders and RPC providers</li>
             <li><strong>Snap sync degrades</strong> — fewer state-holding nodes → fewer peers → harder to bootstrap → vicious cycle</li>
         </ul>
@@ -866,7 +866,7 @@
         <div class="grid-3 reveal reveal-d2">
             <div class="card">
                 <div class="card-title">> Full Account Trie</div>
-                <div class="card-body">Every account's balance, nonce, codeHash + all intermediate MPT nodes (~50 GB)</div>
+                <div class="card-body">Every account's balance, nonce, codeHash + all intermediate MPT nodes</div>
             </div>
             <div class="card">
                 <div class="card-title">> Selective Storage</div>
@@ -878,7 +878,7 @@
             </div>
         </div>
         <div class="stat-row cols-2 reveal reveal-d3">
-            <div class="stat"><div class="stat-num">59 GB</div><div class="stat-label">PS node on mainnet</div></div>
+            <div class="stat"><div class="stat-num">59 GB</div><div class="stat-label">Accounts + USDC + DAI</div></div>
             <div class="stat"><div class="stat-num">79%</div><div class="stat-label">Reduction vs full state</div></div>
         </div>
     </div>
@@ -918,7 +918,7 @@
                     &nbsp;&nbsp;&nbsp;&nbsp;→ account trie → state root
                 </div>
                 <p class="body-text" style="margin-top: clamp(0.3rem, 1vh, 0.6rem);">
-                    Cryptographic certainty, not trust. Proofs <span class="g">batch</span> across PS nodes sharing the same root.
+                    Cryptographic certainty, not trust. A full Merkle path from any tracked storage slot to the <span class="g">state root</span>.
                 </p>
             </div>
             <div class="merged-img">
@@ -943,7 +943,7 @@
         <div class="steps reveal reveal-d2">
             <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Snap sync account trie</strong> — download all accounts + intermediate MPT nodes (~50 GB)</div></div>
             <div class="step"><div class="step-num">2</div><div class="step-text"><strong>Snap sync tracked storage</strong> — download full storage tries for selected contracts</div></div>
-            <div class="step"><div class="step-num">3</div><div class="step-text"><strong>Gap fill via BALs</strong> — process Block Access Lists from pivot to HEAD — no re-execution</div></div>
+            <div class="step"><div class="step-num">3</div><div class="step-text"><strong>Heal state via BALs</strong> — process Block Access Lists from pivot to HEAD — no re-execution</div></div>
             <div class="step"><div class="step-num">4</div><div class="step-text"><strong>Follow the tip</strong> — apply BAL diffs per block. Serve proofs for tracked state.</div></div>
         </div>
         <p class="body-text reveal reveal-d3" style="margin-top: clamp(0.3rem, 1vh, 0.6rem); font-size: var(--small-size); color: var(--text-muted);">
@@ -962,8 +962,8 @@
      ============================================================ -->
 <section class="slide" data-slide="10">
     <div class="slide-content">
-        <div class="eyebrow reveal">// DEAD END</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">State Expiry</span> Is Not the Answer<span class="cursor"></span></h2>
+        <div class="eyebrow reveal">// IN-PROTOCOL ALTERNATIVE</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">In-Protocol State Expiry</span> Falls Short<span class="cursor"></span></h2>
         <hr class="divider reveal reveal-d1">
         <div class="grid-3 reveal reveal-d2">
             <div class="card">
@@ -980,11 +980,11 @@
             </div>
         </div>
         <div class="pull-quote reveal reveal-d3">
-            <p>"State expiry adds protocol complexity. The <span class="g">state remains centralized</span> regardless."</p>
+            <p>"In-protocol state expiry adds <span class="g">huge complexity</span>. Out-of-protocol approaches are less problematic, but PS offers a complementary path."</p>
         </div>
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ state-expiry --status REJECTED</span>
+        <span class="footer-cmd">$ state-expiry --in-protocol --status REJECTED</span>
         <span class="footer-num">10 / 26</span>
     </div>
 </section>
@@ -1009,7 +1009,7 @@
 <section class="slide" data-slide="12">
     <div class="slide-content">
         <div class="eyebrow reveal">// CENSORSHIP RESISTANCE</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">Inclusion Lists</span> Need State<span class="cursor"></span></h2>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Inclusion Lists</span> Need Account Data<span class="cursor"></span></h2>
         <hr class="divider reveal reveal-d1">
         <ul class="points reveal reveal-d2">
             <li><strong>FOCIL (EIP-7805):</strong> 16 includers per slot select txs from the mempool</li>
@@ -1021,6 +1021,9 @@
             <div class="alert-prefix">[ALERT] CENSORSHIP VECTOR</div>
             <p>A provider pressured to stop serving state for targeted addresses → users can't build txs → includers never see them → <span class="amber">invisible censorship</span> without touching the protocol.</p>
         </div>
+        <p class="body-text reveal reveal-d4" style="font-size: var(--small-size); color: var(--text-muted); margin-top: clamp(0.2rem, 0.5vh, 0.4rem);">
+            Note: Today ILs need account data. With Frame Transactions (EIP-8141), includers will also need bounded contract state — witness-carrying txs bridge this gap.
+        </p>
     </div>
     <span class="footer-source">Source: EIP-7805 — eips.ethereum.org/EIPS/eip-7805</span>
     <div class="slide-footer">
@@ -1083,7 +1086,7 @@
                     <li><strong>Hot / Cold pricing</strong> — hot state = cheap (many holders), cold state = premium (few holders)</li>
                     <li><strong>Domain specialization</strong> — DeFi nodes, NFT nodes, protocol-specific. Agents, wallets, indexers as consumers.</li>
                     <li><strong>Attestation analogy</strong> — one query ≈ nothing. Millions/year ≈ real revenue. Economics work at scale.</li>
-                    <li><strong>vs Portal Network</strong> — PS solves Portal's biggest gap: <span class="g">revenue and motivation</span> to hold state.</li>
+                    <li><strong>vs Portal Network</strong> — PS nodes have natural revenue: serving RPC queries and proofs for tracked contracts. The <span class="g">economic incentive</span> is built into the use case.</li>
                 </ul>
             </div>
             <div class="merged-img">
@@ -1115,8 +1118,8 @@
                 <div class="card-body">ZK bridges need L1 state proofs. PS nodes serve cryptographic proofs — trustless cross-chain without full L1 nodes.</div>
             </div>
             <div class="card">
-                <div class="card-title">> AI Agents</div>
-                <div class="card-body">Autonomous agents managing funds need verifiable state — proofs, not promises. PS nodes are the trust layer centralized RPC can't provide.</div>
+                <div class="card-title">> Wallets & Agents</div>
+                <div class="card-body">Wallets need proof-carrying responses for trustless balance queries. Autonomous agents managing funds need verifiable state — proofs, not promises.</div>
             </div>
             <div class="card">
                 <div class="card-title">> Restaking (AVS)</div>
@@ -1153,7 +1156,7 @@
             </div>
         </div>
         <p class="body-text reveal reveal-d3" style="margin-top: clamp(0.5rem, 1vh, 0.8rem);">
-            PS keeps <span class="g">snap sync viable</span> by distributing the serving load across a large mesh of specialized nodes, instead of concentrating it in a few overloaded operators. Market forces replace protocol mandates — no "account expired."
+            PS keeps <span class="g">snap sync viable</span> by distributing serving load across a large mesh. State markets incentivize collective coverage — popular contracts replicated by thousands, the long tail by fewer specialized nodes. No central coordinator needed — the market naturally converges toward a <span class="g">covering partition</span> through economic incentives.
         </p>
     </div>
     <div class="slide-footer">
@@ -1192,7 +1195,7 @@
             <li>Enables: <strong>mempool management + FOCIL inclusion + SNARK verification</strong></li>
             <li>Any PS node is also a VOPS node (VOPS is a subset)</li>
             <li>Post-ZKEVM: the cost of keeping Ethereum <strong>censorship-resistant</strong></li>
-            <li>Scaling caveat: account trie grows with account count — if AI agents drive exponential growth, this is the unknown vector</li>
+            <li>Scaling caveat: account trie grows with account count — if AI agents drive exponential growth, the impact on VOPS state size is an open question</li>
         </ul>
     </div>
     <span class="footer-source">Source: ethresear.ch — VOPS post (241M accounts × ~40 bytes)</span>
@@ -1231,7 +1234,7 @@
             <p>"The more state validation requires — and the more <span class="g">arbitrary</span> it can be — the harder it becomes for nodes to keep the mempool healthy."</p>
         </div>
         <p class="body-text reveal reveal-d4" style="margin-top: clamp(0.3rem, 1vh, 0.6rem);">
-            The AA scheme that makes validation <span class="g">NOT depend on state</span> is the best for statelessness. Schemed Transactions (EIP-8130) are fully PS-compatible. Frame Transactions (EIP-8141) need witness-carrying (~12-20 KB per tx).
+            The AA scheme that makes validation <span class="g">NOT depend on state</span> is the best for statelessness. Schemed Transactions (EIP-8202) are fully PS-compatible. Frame Transactions (EIP-8141) need witness-carrying (~12-20 KB per tx).
         </p>
     </div>
     <div class="slide-footer">
