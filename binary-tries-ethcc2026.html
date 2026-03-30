@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary Tries: Where We Stand — EthCC 2026 Stateless Summit</title>
+
+    <!-- Fonts: VT323 for CRT headings, IBM Plex Mono for readable body -->
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===========================================
+           CSS CUSTOM PROPERTIES (CRT HYBRID THEME)
+           =========================================== */
+        :root {
+            /* Colors */
+            --bg: #000000;
+            --bg-surface: #0a0a0a;
+            --border: #1a2a1a;
+            --border-bright: #1a3a1a;
+
+            --green: #33ff33;
+            --green-dim: #22cc22;
+            --green-muted: #1a5a1a;
+            --green-glow: rgba(51, 255, 51, 0.3);
+            --green-bg: rgba(51, 255, 51, 0.02);
+            --green-bg-card: rgba(51, 255, 51, 0.015);
+            --green-bg-code: rgba(51, 255, 51, 0.04);
+
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --text-muted: #666666;
+            --text-dim: #444444;
+            --white: #e8e8e8;
+
+            /* Typography — LARGER than PS presentation */
+            --font-crt: 'VT323', monospace;
+            --font-body: 'IBM Plex Mono', monospace;
+            --title-size: clamp(2.5rem, 8vw, 5.5rem);
+            --h2-size: clamp(1.7rem, 4.5vw, 3.2rem);
+            --h3-size: clamp(1.1rem, 2.5vw, 1.7rem);
+            --body-size: clamp(0.9rem, 1.7vw, 1.3rem);
+            --small-size: clamp(0.75rem, 1.2vw, 1rem);
+            --tag-size: clamp(0.7rem, 1vw, 0.9rem);
+            --stat-size: clamp(2.2rem, 6vw, 4.5rem);
+
+            /* Spacing — MUST use clamp() */
+            --slide-padding: clamp(1.5rem, 5vw, 5rem);
+            --content-gap: clamp(0.5rem, 2vw, 1.5rem);
+            --element-gap: clamp(0.25rem, 1vw, 0.8rem);
+
+            /* Animation */
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration: 0.6s;
+        }
+
+        /* ===========================================
+           BASE RESET
+           =========================================== */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* ===========================================
+           VIEWPORT FITTING: MANDATORY BASE STYLES
+           =========================================== */
+        html, body { height: 100%; overflow-x: hidden; }
+        html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background: var(--bg);
+        }
+
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden;
+            padding: var(--slide-padding);
+        }
+
+        .card, .container, .content-box {
+            max-width: min(90vw, 1000px);
+            max-height: min(80vh, 700px);
+        }
+
+        img, .image-container {
+            max-width: 100%;
+            max-height: min(50vh, 400px);
+            object-fit: contain;
+        }
+
+        /* Short viewports */
+        @media (max-height: 700px) {
+            :root {
+                --slide-padding: clamp(0.75rem, 3vw, 2rem);
+                --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+                --title-size: clamp(1.8rem, 6vw, 3.5rem);
+                --h2-size: clamp(1.3rem, 3.5vw, 2.4rem);
+                --stat-size: clamp(1.8rem, 5vw, 3rem);
+            }
+        }
+        @media (max-height: 600px) {
+            :root {
+                --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+                --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+                --title-size: clamp(1.5rem, 5vw, 3rem);
+                --body-size: clamp(0.7rem, 1.3vw, 1rem);
+            }
+            .nav-dots, .decorative { display: none; }
+        }
+        @media (max-height: 500px) {
+            :root {
+                --slide-padding: clamp(0.4rem, 2vw, 1rem);
+                --title-size: clamp(1.2rem, 4vw, 2rem);
+                --h2-size: clamp(1rem, 3vw, 1.6rem);
+                --body-size: clamp(0.65rem, 1.1vw, 0.9rem);
+            }
+        }
+        @media (max-width: 600px) {
+            :root { --title-size: clamp(1.8rem, 9vw, 3.5rem); }
+            .grid-2, .grid-3 { grid-template-columns: 1fr !important; }
+            .two-col { flex-direction: column !important; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+            html { scroll-behavior: auto; }
+        }
+
+        /* ===========================================
+           GLOBAL STYLES
+           =========================================== */
+        body {
+            background: var(--bg);
+            font-family: var(--font-body);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ===========================================
+           CRT EFFECTS
+           =========================================== */
+        .slide::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 3px,
+                rgba(0, 255, 0, 0.008) 3px,
+                rgba(0, 255, 0, 0.008) 6px
+            );
+            pointer-events: none;
+            z-index: 2;
+        }
+        .slide::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.4) 100%);
+            pointer-events: none;
+            z-index: 3;
+        }
+        .slide-content { position: relative; z-index: 5; }
+
+        /* ===========================================
+           TYPOGRAPHY
+           =========================================== */
+        .eyebrow {
+            font-family: var(--font-crt);
+            font-size: clamp(0.95rem, 1.4vw, 1.25rem);
+            color: var(--green);
+            opacity: 0.5;
+            letter-spacing: 0.2em;
+            margin-bottom: clamp(0.4rem, 1vh, 0.8rem);
+            text-shadow: 0 0 8px rgba(51, 255, 51, 0.2);
+        }
+        .slide-title {
+            font-family: var(--font-crt);
+            font-size: var(--h2-size);
+            color: var(--green);
+            line-height: 1.15;
+            margin-bottom: clamp(0.3rem, 1vh, 0.8rem);
+            text-shadow: 0 0 6px var(--green-glow), 0 0 20px rgba(51, 255, 51, 0.1);
+        }
+        .slide-title .w { color: var(--white); text-shadow: none; }
+        .hero-title {
+            font-family: var(--font-crt);
+            font-size: var(--title-size);
+            color: var(--green);
+            line-height: 1.1;
+            text-shadow: 0 0 6px var(--green-glow), 0 0 20px rgba(51, 255, 51, 0.1);
+        }
+        .hero-title .w { color: var(--white); text-shadow: none; }
+        .body-text {
+            font-family: var(--font-body);
+            font-size: var(--body-size);
+            color: var(--text-secondary);
+            line-height: 1.65;
+        }
+        .body-text strong { color: var(--text-primary); font-weight: 600; }
+        .body-text .g { color: var(--green); text-shadow: 0 0 4px rgba(51,255,51,0.2); }
+
+        /* ===========================================
+           BLINKING CURSOR
+           =========================================== */
+        .cursor {
+            display: inline-block;
+            width: 0.55em;
+            height: 0.85em;
+            background: var(--green);
+            vertical-align: middle;
+            margin-left: 2px;
+            animation: blink 1s step-end infinite;
+            box-shadow: 0 0 6px rgba(51, 255, 51, 0.4);
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* ===========================================
+           DIVIDER
+           =========================================== */
+        .divider {
+            border: none;
+            height: 1px;
+            background: linear-gradient(90deg, var(--border), var(--green) 30%, var(--green) 70%, var(--border));
+            margin: clamp(0.5rem, 1.5vh, 1.2rem) 0;
+            opacity: 0.3;
+        }
+
+        /* ===========================================
+           BULLET LIST
+           =========================================== */
+        .points {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.35rem, 0.8vh, 0.7rem);
+        }
+        .points li {
+            font-family: var(--font-body);
+            font-size: var(--body-size);
+            color: var(--text-secondary);
+            line-height: 1.55;
+            padding-left: clamp(1rem, 2vw, 1.6rem);
+            position: relative;
+        }
+        .points li::before {
+            content: '>';
+            position: absolute;
+            left: 0;
+            color: var(--green);
+            font-family: var(--font-crt);
+            font-size: clamp(1rem, 1.7vw, 1.4rem);
+            text-shadow: 0 0 4px rgba(51, 255, 51, 0.3);
+        }
+        .points li strong { color: var(--text-primary); font-weight: 600; }
+
+        /* ===========================================
+           STAT ROW
+           =========================================== */
+        .stat-row {
+            display: grid;
+            gap: clamp(0.5rem, 1.5vw, 0.8rem);
+            margin-top: clamp(0.5rem, 1.5vh, 1rem);
+        }
+        .stat-row.cols-3 { grid-template-columns: repeat(3, 1fr); }
+        .stat-row.cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .stat {
+            border: 1px solid var(--border);
+            padding: clamp(0.5rem, 1.2vw, 0.8rem);
+            text-align: center;
+            background: var(--green-bg);
+            position: relative;
+        }
+        .stat::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--green), transparent);
+            opacity: 0.3;
+        }
+        .stat-num {
+            font-family: var(--font-crt);
+            font-size: var(--stat-size);
+            color: var(--green);
+            text-shadow: 0 0 6px var(--green-glow);
+        }
+        .stat-label {
+            font-family: var(--font-body);
+            font-size: var(--tag-size);
+            color: var(--text-muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-top: 0.15rem;
+        }
+
+        /* Amber stat variant */
+        .stat.amber {
+            border: 1px solid #f97316;
+            background: rgba(249, 115, 22, 0.05);
+        }
+        .stat.amber::before {
+            background: linear-gradient(90deg, transparent, #f97316, transparent);
+            opacity: 0.6;
+        }
+        .stat.amber .stat-num {
+            color: #f97316;
+            text-shadow: 0 0 6px rgba(249, 115, 22, 0.4);
+        }
+
+        /* ===========================================
+           PULL QUOTE
+           =========================================== */
+        .pull-quote {
+            border-left: 2px solid var(--green);
+            padding-left: clamp(0.8rem, 2vw, 1.2rem);
+            margin-top: clamp(0.5rem, 1.5vh, 1rem);
+        }
+        .pull-quote p {
+            font-family: var(--font-body);
+            font-size: var(--body-size);
+            color: #ccc;
+            line-height: 1.6;
+            font-style: italic;
+        }
+        .pull-quote .g {
+            color: var(--green);
+            font-style: normal;
+            text-shadow: 0 0 4px rgba(51,255,51,0.2);
+        }
+
+        /* ===========================================
+           FEATURE CARDS
+           =========================================== */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: clamp(0.4rem, 1vw, 0.8rem);
+            margin-top: clamp(0.5rem, 1.5vh, 1rem);
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: clamp(0.4rem, 1vw, 0.8rem);
+            margin-top: clamp(0.5rem, 1.5vh, 1rem);
+        }
+        .card {
+            border: 1px solid var(--border);
+            padding: clamp(0.6rem, 1.5vw, 1rem);
+            background: var(--green-bg-card);
+            position: relative;
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--green), transparent);
+            opacity: 0.3;
+        }
+        .card-title {
+            font-family: var(--font-crt);
+            font-size: clamp(1rem, 1.7vw, 1.3rem);
+            color: var(--green);
+            margin-bottom: clamp(0.15rem, 0.5vh, 0.3rem);
+            text-shadow: 0 0 4px rgba(51,255,51,0.2);
+        }
+        .card-body {
+            font-family: var(--font-body);
+            font-size: clamp(0.7rem, 1.1vw, 0.9rem);
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* ===========================================
+           CODE BLOCK
+           =========================================== */
+        .code-block {
+            background: var(--green-bg-code);
+            border: 1px solid var(--border);
+            padding: clamp(0.6rem, 1.5vw, 1rem) clamp(0.8rem, 2vw, 1.2rem);
+            margin-top: clamp(0.5rem, 1vh, 0.8rem);
+            font-family: var(--font-body);
+            font-size: clamp(0.7rem, 1.2vw, 0.95rem);
+            color: var(--text-secondary);
+            line-height: 1.7;
+            white-space: pre-wrap;
+            overflow: hidden;
+        }
+        .code-block .cmd { color: var(--green); }
+        .code-block .flag { color: var(--text-primary); }
+        .code-block .comment { color: var(--text-dim); }
+
+        /* ===========================================
+           CODE PATH (inline trie path)
+           =========================================== */
+        .code-path {
+            font-family: var(--font-crt);
+            font-size: clamp(1rem, 1.7vw, 1.4rem);
+            color: var(--green);
+            line-height: 1.8;
+            text-shadow: 0 0 4px rgba(51,255,51,0.2);
+            margin: clamp(0.5rem, 1vh, 0.8rem) 0;
+        }
+
+        /* ===========================================
+           ALERT BOX (amber/warning)
+           =========================================== */
+        .alert-box {
+            border: 1px solid #f97316;
+            background: rgba(249, 115, 22, 0.05);
+            padding: clamp(0.6rem, 1.5vw, 1rem);
+            margin-top: clamp(0.5rem, 1.5vh, 1rem);
+            position: relative;
+        }
+        .alert-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #f97316, transparent);
+            opacity: 0.6;
+        }
+        .alert-prefix {
+            font-family: var(--font-crt);
+            font-size: clamp(0.8rem, 1.1vw, 0.95rem);
+            color: #f97316;
+            letter-spacing: 0.15em;
+            margin-bottom: clamp(0.2rem, 0.5vh, 0.4rem);
+            text-shadow: 0 0 6px rgba(249, 115, 22, 0.3);
+        }
+        .alert-box p {
+            font-family: var(--font-body);
+            font-size: var(--body-size);
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        .alert-box .amber {
+            color: #f97316;
+            font-weight: 600;
+            text-shadow: 0 0 6px rgba(249, 115, 22, 0.4);
+        }
+
+        /* ===========================================
+           DIAGRAM SLIDE
+           =========================================== */
+        .diagram-slide .slide-content {
+            padding: clamp(0.8rem, 2vw, 2rem);
+        }
+        .diagram-img {
+            max-width: 100%;
+            max-height: min(70vh, 550px);
+            object-fit: contain;
+            border: 1px solid #1a2a1a;
+            border-radius: 4px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* ===========================================
+           BIG STAT (hero centered)
+           =========================================== */
+        .big-stat {
+            font-family: var(--font-crt);
+            font-size: clamp(3rem, 10vw, 7rem);
+            color: var(--green);
+            text-shadow: 0 0 10px var(--green-glow), 0 0 30px rgba(51,255,51,0.15);
+            text-align: center;
+            margin: clamp(0.3rem, 1vh, 0.5rem) 0;
+        }
+
+        /* ===========================================
+           SLIDE FOOTER
+           =========================================== */
+        .slide-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: clamp(0.4rem, 1vh, 0.8rem) var(--slide-padding);
+            position: relative;
+            z-index: 5;
+        }
+        .footer-cmd {
+            font-family: var(--font-crt);
+            font-size: clamp(0.75rem, 1.1vw, 0.95rem);
+            color: var(--green-muted);
+        }
+        .footer-num {
+            font-family: var(--font-body);
+            font-size: var(--tag-size);
+            color: var(--text-dim);
+        }
+        .footer-source {
+            font-family: var(--font-body);
+            font-size: var(--tag-size);
+            color: var(--text-dim);
+            position: absolute;
+            bottom: clamp(1.8rem, 3vh, 2.5rem);
+            right: var(--slide-padding);
+            z-index: 5;
+        }
+
+        /* ===========================================
+           REVEAL ANIMATIONS
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity var(--duration) var(--ease-out-expo),
+                        transform var(--duration) var(--ease-out-expo);
+        }
+        .slide.visible .reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .reveal-d1 { transition-delay: 0.1s; }
+        .reveal-d2 { transition-delay: 0.2s; }
+        .reveal-d3 { transition-delay: 0.3s; }
+        .reveal-d4 { transition-delay: 0.4s; }
+        .reveal-d5 { transition-delay: 0.5s; }
+        .reveal-d6 { transition-delay: 0.6s; }
+
+        /* ===========================================
+           PROGRESS BAR
+           =========================================== */
+        .progress-bar {
+            position: fixed;
+            top: 0; left: 0;
+            height: 2px;
+            background: var(--green);
+            box-shadow: 0 0 6px var(--green-glow);
+            width: 0%;
+            z-index: 9999;
+            transition: width 0.3s ease;
+        }
+
+        /* ===========================================
+           NAV DOTS
+           =========================================== */
+        .nav-dots {
+            position: fixed;
+            right: clamp(0.6rem, 1.5vw, 1rem);
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: clamp(4px, 0.5vh, 7px);
+            z-index: 1000;
+        }
+        .nav-dot {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            background: var(--text-dim);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            padding: 0;
+        }
+        .nav-dot.active {
+            background: var(--green);
+            box-shadow: 0 0 6px var(--green-glow);
+            transform: scale(1.4);
+        }
+
+        /* ===========================================
+           SECTION TITLE SLIDE
+           =========================================== */
+        .section-title-slide .slide-content {
+            align-items: center;
+            text-align: center;
+            justify-content: center;
+        }
+        .section-title-slide .hero-title {
+            font-size: clamp(2.8rem, 9vw, 6.5rem);
+        }
+
+        /* ===========================================
+           TITLE SLIDE SPECIAL
+           =========================================== */
+        .title-slide .slide-content {
+            align-items: center;
+            text-align: center;
+        }
+        .title-meta {
+            font-family: var(--font-body);
+            font-size: clamp(0.7rem, 1.1vw, 0.9rem);
+            color: var(--text-dim);
+            margin-top: clamp(0.8rem, 2vh, 1.5rem);
+        }
+
+        /* ===========================================
+           CLOSING SLIDE SPECIAL
+           =========================================== */
+        .closing-title {
+            font-family: var(--font-crt);
+            font-size: clamp(2rem, 5.5vw, 4rem);
+            line-height: 1.2;
+            text-align: center;
+        }
+        .closing-title .g { color: var(--green); text-shadow: 0 0 6px var(--green-glow); }
+        .closing-title .w { color: var(--white); }
+        .credits {
+            text-align: center;
+            margin-top: clamp(0.8rem, 2vh, 1.5rem);
+        }
+        .credits p {
+            font-family: var(--font-body);
+            font-size: var(--small-size);
+            color: var(--text-dim);
+            line-height: 1.8;
+        }
+
+        /* ===========================================
+           INLINE SVG SLIDE
+           =========================================== */
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
+            max-height: min(75vh, 600px);
+            overflow: hidden;
+        }
+        .svg-container svg {
+            max-width: 100%;
+            max-height: min(70vh, 550px);
+        }
+
+        /* ===========================================
+           SMALL NOTE (muted body text)
+           =========================================== */
+        .note {
+            font-family: var(--font-body);
+            font-size: var(--small-size);
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-top: clamp(0.3rem, 0.8vh, 0.6rem);
+        }
+    </style>
+</head>
+<body>
+
+<!-- Progress bar -->
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- Nav dots -->
+<nav class="nav-dots" id="navDots"></nav>
+
+<!-- ============================================================
+     SLIDE 1 — TITLE
+     ============================================================ -->
+<section class="slide title-slide" data-slide="1">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// STATELESS SUMMIT</div>
+        <h1 class="hero-title reveal reveal-d1">
+            <span class="w">Binary Tries:</span><br>Where We Stand<span class="cursor"></span>
+        </h1>
+        <hr class="divider reveal reveal-d2" style="max-width: 180px; margin: 0 auto;">
+        <p class="body-text reveal reveal-d3" style="text-align: center; max-width: 600px; margin-top: clamp(0.3rem, 1vh, 0.6rem);">
+            Group-depth benchmarks, MPT comparison &amp; the Partition Binary Tree
+        </p>
+        <div class="title-meta reveal reveal-d4">CPerezz &middot; EthCC 2026</div>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ geth --bintrie</span>
+        <span class="footer-num">1 / 17</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 2 — WHY BINARY TRIES?
+     ============================================================ -->
+<section class="slide" data-slide="2">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// CONTEXT</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Why</span> Binary Tries?<span class="cursor"></span></h2>
+        <hr class="divider reveal reveal-d1">
+        <ul class="points reveal reveal-d2">
+            <li><strong>Unified trie:</strong> all accounts + storage in a single 256-bit keyspace</li>
+            <li><strong>Smaller witnesses:</strong> shorter Merkle proofs for stateless clients</li>
+            <li><strong>Simpler architecture:</strong> one tree instead of per-account storage tries</li>
+            <li><strong>More optimal for ZKEVMs:</strong> binary structure aligns with ZK circuit design</li>
+        </ul>
+        <div class="pull-quote reveal reveal-d3">
+            <p>"But how does it actually <span class="g">perform</span>?"</p>
+        </div>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ bintrie --motivation</span>
+        <span class="footer-num">2 / 17</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 3 — BREAKING MYTHS
+     ============================================================ -->
+<section class="slide" data-slide="3">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// CLARIFICATION</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">What Binary Tries</span> Don't Give You<span class="cursor"></span></h2>
+        <hr class="divider reveal reveal-d1">
+        <div class="grid-2 reveal reveal-d2">
+            <div class="card">
+                <div class="card-title">&gt; "Hash function changes"</div>
+                <div class="card-body">It's the tree migration that allows re-hashing everything, not the tree itself. We could rehash in an MPT migration too.</div>
+            </div>
+            <div class="card">
+                <div class="card-title">&gt; "Code chunking"</div>
+                <div class="card-body">Code chunking can be done in MPT as well. The tree transition is what creates the opportunity, not the binary structure.</div>
+            </div>
+        </div>
+        <div class="pull-quote reveal reveal-d3">
+            <p>"These are benefits of the <span class="g">migration</span>, not the tree."</p>
+        </div>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ bintrie --myths --debunk</span>
+        <span class="footer-num">3 / 17</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 4 — WHAT IS GROUP DEPTH?
+     ============================================================ -->
+<section class="slide" data-slide="4">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// BENCHMARKS</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Group</span> Depth<span class="cursor"></span></h2>
+        <hr class="divider reveal reveal-d1">
+        <p class="body-text reveal reveal-d2">In a binary trie, each node branches into 2 children. Group depth (GD) packs multiple binary levels into a single node &mdash; trading fewer disk seeks for more hashing per node.</p>
+        <ul class="points reveal reveal-d3">
+            <li><strong>GD-1:</strong> 2 children, ~256 path nodes, ~64 bytes/node</li>
+            <li><strong>GD-5:</strong> 32 children, ~52 path nodes, ~1 KB/node</li>
+            <li><strong>GD-8:</strong> 256 children, ~32 path nodes, ~8 KB/node</li>
+        </ul>
+        <p class="note reveal reveal-d4">Wider nodes = fewer disk seeks but more hashing per node. Where's the sweet spot?</p>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ benchmark --explain group-depth</span>
+        <span class="footer-num">4 / 17</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 5 — [DIAGRAM] GROUP DEPTH VISUALIZATION
+     ============================================================ -->
+<section class="slide diagram-slide" data-slide="5">
+    <div class="slide-content" style="align-items: center;">
+        <img src="assets/group-depth-visual.png" alt="Group depth visualization: GD-1 vs GD-5 vs GD-8 tree structures" class="diagram-img reveal">
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ benchmark --visualize gd-1 gd-5 gd-8</span>
+        <span class="footer-num">5 / 17</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 6 — THE EXPERIMENT
+     ============================================================ -->
+<section class="slide" data-slide="6">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// BENCHMARKS</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">The</span> Experiment<span class="cursor"></span></h2>
+        <hr class="divider reveal reveal-d1">
+        <ul class="points reveal reveal-d2">
+            <li><strong>360 GB database,</strong> ~400M state entries (accounts + storage)</li>
+            <li><strong>8 group-depth configs</strong> (GD-1 through GD-8), cold cache, 9 runs per config</li>
+            <li><strong>Mann-Whitney U tests</strong> for statistical rigor</li>
+            <li><strong>Primary metric: Mgas/s</strong> (normalizes for block composition differences)</li>
+        </ul>
+    </div>
+    <span class="footer-source">cperezz.github.io/bintrie-benchmarks/group-depth-benchmarks/</span>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ benchmark --configs GD-1..GD-8 --runs 9</span>
+        <span class="footer-num">6 / 17</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 7 — [DIAGRAM] GD SWEET SPOT CHART
+     ============================================================ -->
+<section class="slide diagram-slide" data-slide="7">
+    <div class="slide-content" style="align-items: center;">
+        <img src="assets/gd-sweet-spot.png" alt="Mgas/s vs group depth chart showing GD-5/GD-6 sweet spot" class="diagram-img reveal">
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ benchmark --plot mgas-vs-gd</span>
+        <span class="footer-num">7 / 17</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 8 — THE VERDICT
+     ============================================================ -->
+<section class="slide" data-slide="8">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// RESULTS</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">The Sweet Spot:</span> GD-5 / GD-6<span class="cursor"></span></h2>
+        <hr class="divider reveal reveal-d1">
+        <div class="stat-row cols-3 reveal reveal-d2">
+            <div class="stat">
+                <div class="stat-num">6.94</div>
+                <div class="stat-label">Mgas/s &mdash; GD-5 writes (+160% vs GD-1)</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num">6.39</div>
+                <div class="stat-label">Mgas/s &mdash; GD-6 reads (+141% vs GD-1)</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num">GD-7+</div>
+                <div class="stat-label">Past inflection (nodes &gt; NVMe block size)</div>
+            </div>
+        </div>
+        <p class="body-text reveal reveal-d3" style="margin-top: clamp(0.5rem, 1.5vh, 1rem);">GD-5 for write-heavy workloads. GD-6 for read-heavy/mixed. Both in the optimal 5-6 bit range. GD-7+ collapse: ~4KB nodes saturate Pebble block size.</p>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ benchmark --verdict</span>
+        <span class="footer-num">8 / 17</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 9 — THE HONEST GAP
+     ============================================================ -->
+<section class="slide" data-slide="9">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// MPT vs BINTRIE</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">The Honest</span> Gap<span class="cursor"></span></h2>
+        <hr class="divider reveal reveal-d1">
+        <p class="body-text reveal reveal-d2">BT-GD5 vs production MPT. Same hardware: 48-core EPYC, 126GB RAM, 3.5TB SSD.</p>
+        <div class="stat-row cols-3 reveal reveal-d3">
+            <div class="stat amber">
+                <div class="stat-num">1.7x</div>
+                <div class="stat-label">slower &mdash; reads (11.2 vs 19.0 Mgas/s)</div>
+            </div>
+            <div class="stat amber">
+                <div class="stat-num">2.5x</div>
+                <div class="stat-label">slower &mdash; writes per slot (0.569 vs 0.229 ms)</div>
+            </div>
+            <div class="stat amber">
+                <div class="stat-num">91%</div>
+                <div class="stat-label">of 12-second slot budget (mixed)</div>
+            </div>
+        </div>
+        <div class="alert-box reveal reveal-d4">
+            <div class="alert-prefix">[STATUS]</div>
+            <p>The binary trie is <span class="amber">not ready for production</span> today.</p>
+        </div>
+    </div>
+    <span class="footer-source">cperezz.github.io/bintrie-benchmarks/mpt-vs-bintrie/</span>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ benchmark --compare mpt bt-gd5</span>
+        <span class="footer-num">9 / 17</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 10 — [DIAGRAM] MPT vs BINTRIE ARCHITECTURE
+     ============================================================ -->
+<section class="slide diagram-slide" data-slide="10">
+    <div class="slide-content" style="align-items: center;">
+        <img src="assets/mpt-vs-bintrie-arch.png" alt="MPT vs Binary Trie architecture depth comparison" class="diagram-img reveal">
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ trie --compare-depth mpt bintrie</span>
+        <span class="footer-num">10 / 17</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 11 — WHY THE GAP EXISTS
+     ============================================================ -->
+<section class="slide" data-slide="11">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// ROOT CAUSE</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Why</span> the Gap Exists<span class="cursor"></span></h2>
+        <hr class="divider reveal reveal-d1">
+        <ul class="points reveal reveal-d2">
+            <li><strong>Path depth:</strong> 52 nodes (BT) vs 5-6 (MPT) &mdash; 10x more disk seeks per lookup</li>
+            <li><strong>Hash cost:</strong> ~260 internal ops per write (BT) vs ~10-15 (MPT)</li>
+            <li><strong>95-98% of "hash time"</strong> is traversal + serialization, not cryptography</li>
+            <li><strong>Cache hit rate</strong> plateaus at 35-38% &mdash; 256-bit keyspace too sparse for reuse</li>
+        </ul>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ benchmark --breakdown state_read trie_hash commit</span>
+        <span class="footer-num">11 / 17</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 12 — CLOSING THE GAP
+     ============================================================ -->
+<section class="slide" data-slide="12">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// FUTURE DIRECTIONS</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Closing</span> the Gap<span class="cursor"></span></h2>
+        <hr class="divider reveal reveal-d1">
+        <ul class="points reveal reveal-d2">
+            <li><strong>Snapshot layer / pathdb fast reads</strong> &mdash; biggest potential, unexplored</li>
+            <li><strong>Pebble block size tuning</strong> &mdash; GD-5 nodes are ~1KB vs 4KB blocks</li>
+            <li><strong>Parallel EVM</strong> &mdash; NVMe QD=8 gives 8.7x throughput over QD=1</li>
+            <li><strong>DB schema redesign</strong> &mdash; co-locating path siblings to reduce seek overhead</li>
+        </ul>
+        <p class="note reveal reveal-d3">4 optimization PRs merged in one week. Trajectory is encouraging.</p>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ geth --optimize --parallel-evm</span>
+        <span class="footer-num">12 / 17</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 13 — [SECTION TITLE] DESIGNING FORWARD
+     ============================================================ -->
+<section class="slide section-title-slide" data-slide="13">
+    <div class="slide-content">
+        <div class="eyebrow reveal" style="font-size: clamp(1.1rem, 1.6vw, 1.4rem);">// ACT II</div>
+        <h1 class="hero-title reveal reveal-d1">The Partition Binary Tree<span class="cursor"></span></h1>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ cd /pbt-spec</span>
+        <span class="footer-num">13 / 17</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 14 — PBT: WHAT & WHY
+     ============================================================ -->
+<section class="slide" data-slide="14">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// POST-ZKEVM DESIGN</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Designed for</span> the Future<span class="cursor"></span></h2>
+        <hr class="divider reveal reveal-d1">
+        <ul class="points reveal reveal-d2">
+            <li><strong>Three zones:</strong> accounts (00, 25%), code (01, 25%), storage (1, 50%)</li>
+            <li><strong>No sequential dependency:</strong> MPT requires storage_root in account leaves &mdash; PBT eliminates this</li>
+            <li><strong>Single-pass parallel root computation:</strong> zones update independently, converge at root</li>
+            <li><strong>Enables:</strong> state expiry (per-account subtree pruning), partial statefulness, VOPS, proof compression (29-44%)</li>
+        </ul>
+    </div>
+    <span class="footer-source">cperezz.github.io/pbt-spec/</span>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ pbt --spec --zones 3</span>
+        <span class="footer-num">14 / 17</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 15 — [DIAGRAM] PBT TOPOLOGY (INLINE SVG)
+     ============================================================ -->
+<section class="slide" data-slide="15">
+    <div class="slide-content" style="align-items: center; padding: clamp(0.6rem, 1.5vw, 1.5rem);">
+        <div class="svg-container reveal">
+            <svg viewBox="0 0 720 500" xmlns="http://www.w3.org/2000/svg" fill="none">
+                <!-- Background grid (subtle) -->
+                <defs>
+                    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(51,255,51,0.03)" stroke-width="0.5"/>
+                    </pattern>
+                </defs>
+                <rect width="720" height="500" fill="url(#grid)"/>
+
+                <!-- ROOT node -->
+                <circle cx="360" cy="40" r="22" fill="rgba(51,255,51,0.05)" stroke="#e8e8e8" stroke-width="1.5"/>
+                <text x="360" y="45" text-anchor="middle" fill="#e8e8e8" font-family="'VT323', monospace" font-size="16">ROOT</text>
+
+                <!-- d=1 split lines -->
+                <line x1="345" y1="60" x2="180" y2="90" stroke="#e8e8e8" stroke-width="1" opacity="0.5"/>
+                <line x1="375" y1="60" x2="545" y2="90" stroke="#e8e8e8" stroke-width="1" opacity="0.5"/>
+
+                <!-- d=1 label -->
+                <text x="15" y="105" fill="#666" font-family="'IBM Plex Mono', monospace" font-size="10">d=1</text>
+
+                <!-- Left branch: 0 (accounts + code) -->
+                <circle cx="180" cy="105" r="18" fill="rgba(51,255,51,0.08)" stroke="#33ff33" stroke-width="1.2"/>
+                <text x="180" y="110" text-anchor="middle" fill="#33ff33" font-family="'VT323', monospace" font-size="15">0</text>
+
+                <!-- Right branch: 1 (storage, 50%) -->
+                <circle cx="545" cy="105" r="18" fill="rgba(139,92,246,0.08)" stroke="#8b5cf6" stroke-width="1.2"/>
+                <text x="545" y="110" text-anchor="middle" fill="#8b5cf6" font-family="'VT323', monospace" font-size="15">1</text>
+                <text x="545" y="135" text-anchor="middle" fill="#8b5cf6" font-family="'IBM Plex Mono', monospace" font-size="9" opacity="0.7">STORAGE (50%)</text>
+
+                <!-- d=2 split lines from node 0 -->
+                <line x1="165" y1="122" x2="100" y2="155" stroke="#33ff33" stroke-width="1" opacity="0.4"/>
+                <line x1="195" y1="122" x2="260" y2="155" stroke="#2dd4bf" stroke-width="1" opacity="0.4"/>
+
+                <!-- d=2 label -->
+                <text x="15" y="170" fill="#666" font-family="'IBM Plex Mono', monospace" font-size="10">d=2</text>
+
+                <!-- Account zone: 00 -->
+                <circle cx="100" cy="167" r="16" fill="rgba(51,255,51,0.08)" stroke="#33ff33" stroke-width="1.2"/>
+                <text x="100" y="172" text-anchor="middle" fill="#33ff33" font-family="'VT323', monospace" font-size="14">00</text>
+                <text x="100" y="195" text-anchor="middle" fill="#33ff33" font-family="'IBM Plex Mono', monospace" font-size="9" opacity="0.7">ACCOUNTS (25%)</text>
+
+                <!-- Code zone: 01 -->
+                <circle cx="260" cy="167" r="16" fill="rgba(45,212,191,0.08)" stroke="#2dd4bf" stroke-width="1.2"/>
+                <text x="260" y="172" text-anchor="middle" fill="#2dd4bf" font-family="'VT323', monospace" font-size="14">01</text>
+                <text x="260" y="195" text-anchor="middle" fill="#2dd4bf" font-family="'IBM Plex Mono', monospace" font-size="9" opacity="0.7">CODE (25%)</text>
+
+                <!-- Per-account boundary (amber dashed) -->
+                <line x1="30" y1="215" x2="690" y2="215" stroke="#f97316" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.4"/>
+                <text x="700" y="218" text-anchor="end" fill="#f97316" font-family="'IBM Plex Mono', monospace" font-size="8" opacity="0.6">per-account boundary</text>
+
+                <!-- ACCOUNTS zone subtrees -->
+                <!-- Account subtree 1 -->
+                <line x1="60" y1="195" x2="50" y2="240" stroke="#33ff33" stroke-width="0.7" opacity="0.3"/>
+                <line x1="60" y1="195" x2="70" y2="240" stroke="#33ff33" stroke-width="0.7" opacity="0.3"/>
+                <rect x="38" y="240" width="24" height="14" rx="2" fill="rgba(51,255,51,0.06)" stroke="#33ff33" stroke-width="0.6" opacity="0.5"/>
+                <text x="50" y="250" text-anchor="middle" fill="#33ff33" font-family="'VT323', monospace" font-size="8" opacity="0.6">stem</text>
+                <rect x="30" y="262" width="12" height="8" rx="1" fill="rgba(51,255,51,0.1)" stroke="#33ff33" stroke-width="0.4" opacity="0.4"/>
+                <rect x="46" y="262" width="12" height="8" rx="1" fill="rgba(51,255,51,0.1)" stroke="#33ff33" stroke-width="0.4" opacity="0.4"/>
+                <rect x="62" y="262" width="12" height="8" rx="1" fill="rgba(51,255,51,0.1)" stroke="#33ff33" stroke-width="0.4" opacity="0.4"/>
+
+                <!-- Account subtree 2 -->
+                <line x1="120" y1="195" x2="110" y2="240" stroke="#33ff33" stroke-width="0.7" opacity="0.3"/>
+                <line x1="120" y1="195" x2="130" y2="240" stroke="#33ff33" stroke-width="0.7" opacity="0.3"/>
+                <rect x="98" y="240" width="24" height="14" rx="2" fill="rgba(51,255,51,0.06)" stroke="#33ff33" stroke-width="0.6" opacity="0.5"/>
+                <text x="110" y="250" text-anchor="middle" fill="#33ff33" font-family="'VT323', monospace" font-size="8" opacity="0.6">stem</text>
+                <rect x="90" y="262" width="12" height="8" rx="1" fill="rgba(51,255,51,0.1)" stroke="#33ff33" stroke-width="0.4" opacity="0.4"/>
+                <rect x="106" y="262" width="12" height="8" rx="1" fill="rgba(51,255,51,0.1)" stroke="#33ff33" stroke-width="0.4" opacity="0.4"/>
+                <rect x="122" y="262" width="12" height="8" rx="1" fill="rgba(51,255,51,0.1)" stroke="#33ff33" stroke-width="0.4" opacity="0.4"/>
+
+                <!-- CODE zone subtrees -->
+                <!-- Code subtree 1 -->
+                <line x1="230" y1="195" x2="220" y2="240" stroke="#2dd4bf" stroke-width="0.7" opacity="0.3"/>
+                <line x1="230" y1="195" x2="240" y2="240" stroke="#2dd4bf" stroke-width="0.7" opacity="0.3"/>
+                <rect x="208" y="240" width="24" height="14" rx="2" fill="rgba(45,212,191,0.06)" stroke="#2dd4bf" stroke-width="0.6" opacity="0.5"/>
+                <text x="220" y="250" text-anchor="middle" fill="#2dd4bf" font-family="'VT323', monospace" font-size="8" opacity="0.6">stem</text>
+                <rect x="200" y="262" width="12" height="8" rx="1" fill="rgba(45,212,191,0.1)" stroke="#2dd4bf" stroke-width="0.4" opacity="0.4"/>
+                <rect x="216" y="262" width="12" height="8" rx="1" fill="rgba(45,212,191,0.1)" stroke="#2dd4bf" stroke-width="0.4" opacity="0.4"/>
+                <rect x="232" y="262" width="12" height="8" rx="1" fill="rgba(45,212,191,0.1)" stroke="#2dd4bf" stroke-width="0.4" opacity="0.4"/>
+
+                <!-- Code subtree 2 -->
+                <line x1="290" y1="195" x2="280" y2="240" stroke="#2dd4bf" stroke-width="0.7" opacity="0.3"/>
+                <line x1="290" y1="195" x2="300" y2="240" stroke="#2dd4bf" stroke-width="0.7" opacity="0.3"/>
+                <rect x="268" y="240" width="24" height="14" rx="2" fill="rgba(45,212,191,0.06)" stroke="#2dd4bf" stroke-width="0.6" opacity="0.5"/>
+                <text x="280" y="250" text-anchor="middle" fill="#2dd4bf" font-family="'VT323', monospace" font-size="8" opacity="0.6">stem</text>
+                <rect x="260" y="262" width="12" height="8" rx="1" fill="rgba(45,212,191,0.1)" stroke="#2dd4bf" stroke-width="0.4" opacity="0.4"/>
+                <rect x="276" y="262" width="12" height="8" rx="1" fill="rgba(45,212,191,0.1)" stroke="#2dd4bf" stroke-width="0.4" opacity="0.4"/>
+                <rect x="292" y="262" width="12" height="8" rx="1" fill="rgba(45,212,191,0.1)" stroke="#2dd4bf" stroke-width="0.4" opacity="0.4"/>
+
+                <!-- STORAGE zone expanded (deeper) -->
+                <!-- d=221 label -->
+                <text x="15" y="230" fill="#666" font-family="'IBM Plex Mono', monospace" font-size="9">d=221</text>
+
+                <!-- Storage per-account buckets -->
+                <line x1="545" y1="122" x2="460" y2="220" stroke="#8b5cf6" stroke-width="0.7" opacity="0.3"/>
+                <line x1="545" y1="122" x2="545" y2="220" stroke="#8b5cf6" stroke-width="0.7" opacity="0.3"/>
+                <line x1="545" y1="122" x2="630" y2="220" stroke="#8b5cf6" stroke-width="0.7" opacity="0.3"/>
+
+                <!-- Storage bucket 1 -->
+                <circle cx="460" cy="230" r="12" fill="rgba(139,92,246,0.06)" stroke="#8b5cf6" stroke-width="0.8" opacity="0.6"/>
+                <text x="460" y="234" text-anchor="middle" fill="#8b5cf6" font-family="'VT323', monospace" font-size="9" opacity="0.7">acct1</text>
+
+                <!-- Storage bucket 2 -->
+                <circle cx="545" cy="230" r="12" fill="rgba(139,92,246,0.06)" stroke="#8b5cf6" stroke-width="0.8" opacity="0.6"/>
+                <text x="545" y="234" text-anchor="middle" fill="#8b5cf6" font-family="'VT323', monospace" font-size="9" opacity="0.7">acct2</text>
+
+                <!-- Storage bucket 3 -->
+                <circle cx="630" cy="230" r="12" fill="rgba(139,92,246,0.06)" stroke="#8b5cf6" stroke-width="0.8" opacity="0.6"/>
+                <text x="630" y="234" text-anchor="middle" fill="#8b5cf6" font-family="'VT323', monospace" font-size="9" opacity="0.7">acct3</text>
+
+                <!-- Storage stems at d=410 -->
+                <text x="15" y="320" fill="#666" font-family="'IBM Plex Mono', monospace" font-size="9">d=410</text>
+
+                <!-- Storage stems + leaves for bucket 1 -->
+                <line x1="460" y1="242" x2="440" y2="310" stroke="#8b5cf6" stroke-width="0.5" opacity="0.25"/>
+                <line x1="460" y1="242" x2="460" y2="310" stroke="#8b5cf6" stroke-width="0.5" opacity="0.25"/>
+                <line x1="460" y1="242" x2="480" y2="310" stroke="#8b5cf6" stroke-width="0.5" opacity="0.25"/>
+                <rect x="428" y="310" width="24" height="14" rx="2" fill="rgba(139,92,246,0.06)" stroke="#8b5cf6" stroke-width="0.5" opacity="0.4"/>
+                <text x="440" y="320" text-anchor="middle" fill="#8b5cf6" font-family="'VT323', monospace" font-size="8" opacity="0.5">stem</text>
+                <rect x="448" y="310" width="24" height="14" rx="2" fill="rgba(139,92,246,0.06)" stroke="#8b5cf6" stroke-width="0.5" opacity="0.4"/>
+                <text x="460" y="320" text-anchor="middle" fill="#8b5cf6" font-family="'VT323', monospace" font-size="8" opacity="0.5">stem</text>
+                <rect x="468" y="310" width="24" height="14" rx="2" fill="rgba(139,92,246,0.06)" stroke="#8b5cf6" stroke-width="0.5" opacity="0.4"/>
+                <text x="480" y="320" text-anchor="middle" fill="#8b5cf6" font-family="'VT323', monospace" font-size="8" opacity="0.5">stem</text>
+
+                <!-- d=418 leaves label -->
+                <text x="15" y="355" fill="#666" font-family="'IBM Plex Mono', monospace" font-size="9">d=418</text>
+
+                <!-- Leaves for storage -->
+                <rect x="420" y="340" width="10" height="7" rx="1" fill="rgba(139,92,246,0.12)" stroke="#8b5cf6" stroke-width="0.3" opacity="0.35"/>
+                <rect x="434" y="340" width="10" height="7" rx="1" fill="rgba(139,92,246,0.12)" stroke="#8b5cf6" stroke-width="0.3" opacity="0.35"/>
+                <rect x="448" y="340" width="10" height="7" rx="1" fill="rgba(139,92,246,0.12)" stroke="#8b5cf6" stroke-width="0.3" opacity="0.35"/>
+                <rect x="462" y="340" width="10" height="7" rx="1" fill="rgba(139,92,246,0.12)" stroke="#8b5cf6" stroke-width="0.3" opacity="0.35"/>
+                <rect x="476" y="340" width="10" height="7" rx="1" fill="rgba(139,92,246,0.12)" stroke="#8b5cf6" stroke-width="0.3" opacity="0.35"/>
+                <rect x="490" y="340" width="10" height="7" rx="1" fill="rgba(139,92,246,0.12)" stroke="#8b5cf6" stroke-width="0.3" opacity="0.35"/>
+
+                <!-- Storage stems + leaves for bucket 2 -->
+                <line x1="545" y1="242" x2="525" y2="310" stroke="#8b5cf6" stroke-width="0.5" opacity="0.25"/>
+                <line x1="545" y1="242" x2="545" y2="310" stroke="#8b5cf6" stroke-width="0.5" opacity="0.25"/>
+                <line x1="545" y1="242" x2="565" y2="310" stroke="#8b5cf6" stroke-width="0.5" opacity="0.25"/>
+                <rect x="513" y="310" width="24" height="14" rx="2" fill="rgba(139,92,246,0.06)" stroke="#8b5cf6" stroke-width="0.5" opacity="0.4"/>
+                <rect x="533" y="310" width="24" height="14" rx="2" fill="rgba(139,92,246,0.06)" stroke="#8b5cf6" stroke-width="0.5" opacity="0.4"/>
+                <rect x="553" y="310" width="24" height="14" rx="2" fill="rgba(139,92,246,0.06)" stroke="#8b5cf6" stroke-width="0.5" opacity="0.4"/>
+                <rect x="510" y="340" width="10" height="7" rx="1" fill="rgba(139,92,246,0.12)" stroke="#8b5cf6" stroke-width="0.3" opacity="0.35"/>
+                <rect x="524" y="340" width="10" height="7" rx="1" fill="rgba(139,92,246,0.12)" stroke="#8b5cf6" stroke-width="0.3" opacity="0.35"/>
+                <rect x="538" y="340" width="10" height="7" rx="1" fill="rgba(139,92,246,0.12)" stroke="#8b5cf6" stroke-width="0.3" opacity="0.35"/>
+                <rect x="552" y="340" width="10" height="7" rx="1" fill="rgba(139,92,246,0.12)" stroke="#8b5cf6" stroke-width="0.3" opacity="0.35"/>
+                <rect x="566" y="340" width="10" height="7" rx="1" fill="rgba(139,92,246,0.12)" stroke="#8b5cf6" stroke-width="0.3" opacity="0.35"/>
+
+                <!-- Storage stems + leaves for bucket 3 -->
+                <line x1="630" y1="242" x2="610" y2="310" stroke="#8b5cf6" stroke-width="0.5" opacity="0.25"/>
+                <line x1="630" y1="242" x2="630" y2="310" stroke="#8b5cf6" stroke-width="0.5" opacity="0.25"/>
+                <line x1="630" y1="242" x2="650" y2="310" stroke="#8b5cf6" stroke-width="0.5" opacity="0.25"/>
+                <rect x="598" y="310" width="24" height="14" rx="2" fill="rgba(139,92,246,0.06)" stroke="#8b5cf6" stroke-width="0.5" opacity="0.4"/>
+                <rect x="618" y="310" width="24" height="14" rx="2" fill="rgba(139,92,246,0.06)" stroke="#8b5cf6" stroke-width="0.5" opacity="0.4"/>
+                <rect x="638" y="310" width="24" height="14" rx="2" fill="rgba(139,92,246,0.06)" stroke="#8b5cf6" stroke-width="0.5" opacity="0.4"/>
+                <rect x="595" y="340" width="10" height="7" rx="1" fill="rgba(139,92,246,0.12)" stroke="#8b5cf6" stroke-width="0.3" opacity="0.35"/>
+                <rect x="609" y="340" width="10" height="7" rx="1" fill="rgba(139,92,246,0.12)" stroke="#8b5cf6" stroke-width="0.3" opacity="0.35"/>
+                <rect x="623" y="340" width="10" height="7" rx="1" fill="rgba(139,92,246,0.12)" stroke="#8b5cf6" stroke-width="0.3" opacity="0.35"/>
+                <rect x="637" y="340" width="10" height="7" rx="1" fill="rgba(139,92,246,0.12)" stroke="#8b5cf6" stroke-width="0.3" opacity="0.35"/>
+                <rect x="651" y="340" width="10" height="7" rx="1" fill="rgba(139,92,246,0.12)" stroke="#8b5cf6" stroke-width="0.3" opacity="0.35"/>
+
+                <!-- Account zone leaves label -->
+                <text x="80" y="286" text-anchor="middle" fill="#33ff33" font-family="'VT323', monospace" font-size="8" opacity="0.4">leaves</text>
+                <text x="250" y="286" text-anchor="middle" fill="#2dd4bf" font-family="'VT323', monospace" font-size="8" opacity="0.4">leaves</text>
+                <text x="545" y="365" text-anchor="middle" fill="#8b5cf6" font-family="'VT323', monospace" font-size="8" opacity="0.4">leaves</text>
+
+                <!-- LEGEND -->
+                <rect x="100" y="420" width="12" height="12" rx="2" fill="rgba(51,255,51,0.1)" stroke="#33ff33" stroke-width="0.8"/>
+                <text x="118" y="430" fill="#33ff33" font-family="'IBM Plex Mono', monospace" font-size="11">Zone 00 &mdash; Accounts</text>
+
+                <rect x="290" y="420" width="12" height="12" rx="2" fill="rgba(45,212,191,0.1)" stroke="#2dd4bf" stroke-width="0.8"/>
+                <text x="308" y="430" fill="#2dd4bf" font-family="'IBM Plex Mono', monospace" font-size="11">Zone 01 &mdash; Code</text>
+
+                <rect x="460" y="420" width="12" height="12" rx="2" fill="rgba(139,92,246,0.1)" stroke="#8b5cf6" stroke-width="0.8"/>
+                <text x="478" y="430" fill="#8b5cf6" font-family="'IBM Plex Mono', monospace" font-size="11">Zone 1 &mdash; Storage</text>
+
+                <!-- Structural boundary legend -->
+                <line x1="100" y1="450" x2="130" y2="450" stroke="#f97316" stroke-width="0.8" stroke-dasharray="4,4" opacity="0.6"/>
+                <text x="138" y="454" fill="#f97316" font-family="'IBM Plex Mono', monospace" font-size="10" opacity="0.7">Per-account subtree boundary</text>
+            </svg>
+        </div>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ pbt --topology</span>
+        <span class="footer-num">15 / 17</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 16 — OPEN QUESTIONS
+     ============================================================ -->
+<section class="slide" data-slide="16">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// OPEN QUESTIONS</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">What We</span> Don't Know Yet<span class="cursor"></span></h2>
+        <hr class="divider reveal reveal-d1">
+        <ul class="points reveal reveal-d2">
+            <li><strong>PBT performance:</strong> design first, benchmark later &mdash; no claims yet</li>
+            <li><strong>Hash function selection:</strong> BLAKE3 (fast native) vs Poseidon2 (SNARK-friendly) vs Keccak (ecosystem)</li>
+            <li><strong>Optimal storage prefix</strong> (P=60 &rarr; ~43 collision pairs at 10B accounts)</li>
+            <li><strong>Resurrection strategy</strong> for expired subtrees (full proof vs incremental vs epoch-based)</li>
+        </ul>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ research --status open</span>
+        <span class="footer-num">16 / 17</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 17 — CTA + CREDITS
+     ============================================================ -->
+<section class="slide section-title-slide" data-slide="17">
+    <div class="slide-content">
+        <h1 class="closing-title reveal">
+            <span class="g">Benchmarks.</span> <span class="w">Specs.</span> <span class="g">Feedback.</span><span class="cursor"></span>
+        </h1>
+        <hr class="divider reveal reveal-d1" style="max-width: 180px; margin: 0 auto;">
+        <ul class="points reveal reveal-d2" style="text-align: left; display: inline-flex; flex-direction: column;">
+            <li>Group-depth benchmarks: <strong>cperezz.github.io/bintrie-benchmarks/</strong></li>
+            <li>PBT spec: <strong>cperezz.github.io/pbt-spec/</strong></li>
+            <li>Geth binary trie branch: <strong>github.com/ethereum/go-ethereum</strong></li>
+        </ul>
+        <div class="credits reveal reveal-d3">
+            <p>CPerezz &middot; EthCC 2026 &middot; Stateless Summit</p>
+        </div>
+    </div>
+    <div class="slide-footer">
+        <span class="footer-cmd">$ exit 0</span>
+        <span class="footer-num">17 / 17</span>
+    </div>
+</section>
+
+<!-- ============================================================
+     JAVASCRIPT — SlidePresentation class
+     ============================================================ -->
+<script>
+class SlidePresentation {
+    constructor() {
+        this.slides = document.querySelectorAll('.slide');
+        this.currentSlide = 0;
+        this.isAnimating = false;
+        this.touchStartY = 0;
+
+        this.setupIntersectionObserver();
+        this.setupKeyboardNav();
+        this.setupTouchNav();
+        this.setupWheelNav();
+        this.setupProgressBar();
+        this.setupNavDots();
+    }
+
+    /* --- Intersection Observer: add .visible for animations --- */
+    setupIntersectionObserver() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    const idx = Array.from(this.slides).indexOf(entry.target);
+                    if (idx !== -1) {
+                        this.currentSlide = idx;
+                        this.updateProgressBar();
+                        this.updateNavDots();
+                    }
+                }
+            });
+        }, { threshold: 0.5 });
+
+        this.slides.forEach(slide => observer.observe(slide));
+    }
+
+    /* --- Keyboard: arrows, space, page up/down --- */
+    setupKeyboardNav() {
+        document.addEventListener('keydown', (e) => {
+            if (this.isAnimating) return;
+            switch (e.key) {
+                case 'ArrowDown':
+                case 'ArrowRight':
+                case ' ':
+                case 'PageDown':
+                    e.preventDefault();
+                    this.goToSlide(this.currentSlide + 1);
+                    break;
+                case 'ArrowUp':
+                case 'ArrowLeft':
+                case 'PageUp':
+                    e.preventDefault();
+                    this.goToSlide(this.currentSlide - 1);
+                    break;
+                case 'Home':
+                    e.preventDefault();
+                    this.goToSlide(0);
+                    break;
+                case 'End':
+                    e.preventDefault();
+                    this.goToSlide(this.slides.length - 1);
+                    break;
+            }
+        });
+    }
+
+    /* --- Touch / Swipe --- */
+    setupTouchNav() {
+        document.addEventListener('touchstart', (e) => {
+            this.touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        document.addEventListener('touchend', (e) => {
+            const diff = this.touchStartY - e.changedTouches[0].clientY;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) this.goToSlide(this.currentSlide + 1);
+                else this.goToSlide(this.currentSlide - 1);
+            }
+        }, { passive: true });
+    }
+
+    /* --- Mouse Wheel --- */
+    setupWheelNav() {
+        let lastWheel = 0;
+        document.addEventListener('wheel', (e) => {
+            const now = Date.now();
+            if (now - lastWheel < 800) return;
+            lastWheel = now;
+            if (e.deltaY > 0) this.goToSlide(this.currentSlide + 1);
+            else if (e.deltaY < 0) this.goToSlide(this.currentSlide - 1);
+        }, { passive: true });
+    }
+
+    /* --- Navigate to slide --- */
+    goToSlide(index) {
+        if (index < 0 || index >= this.slides.length) return;
+        this.isAnimating = true;
+        this.currentSlide = index;
+        this.slides[index].scrollIntoView({ behavior: 'smooth' });
+        this.updateProgressBar();
+        this.updateNavDots();
+        setTimeout(() => { this.isAnimating = false; }, 600);
+    }
+
+    /* --- Progress Bar --- */
+    setupProgressBar() {
+        this.progressBar = document.getElementById('progressBar');
+        this.updateProgressBar();
+    }
+    updateProgressBar() {
+        if (!this.progressBar) return;
+        const progress = ((this.currentSlide) / (this.slides.length - 1)) * 100;
+        this.progressBar.style.width = progress + '%';
+    }
+
+    /* --- Nav Dots --- */
+    setupNavDots() {
+        const nav = document.getElementById('navDots');
+        if (!nav) return;
+        this.slides.forEach((_, i) => {
+            const dot = document.createElement('button');
+            dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+            dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+            dot.addEventListener('click', () => this.goToSlide(i));
+            nav.appendChild(dot);
+        });
+        this.navDotElements = nav.querySelectorAll('.nav-dot');
+    }
+    updateNavDots() {
+        if (!this.navDotElements) return;
+        this.navDotElements.forEach((dot, i) => {
+            dot.classList.toggle('active', i === this.currentSlide);
+        });
+    }
+}
+
+/* Initialize */
+document.addEventListener('DOMContentLoaded', () => {
+    new SlidePresentation();
+});
+</script>
+
+</body>
+</html>
