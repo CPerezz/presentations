@@ -674,7 +674,7 @@
         </h1>
         <hr class="divider reveal reveal-d2" style="max-width: 180px; margin: 0 auto;">
         <p class="body-text reveal reveal-d3" style="text-align: center; max-width: 600px; margin-top: clamp(0.3rem, 1vh, 0.6rem);">
-            Group-depth benchmarks, MPT comparison &amp; the Partition Binary Tree
+            Group-depth benchmarks, MPT comparison &amp; the Partitioned Binary Tree
         </p>
         <div class="title-meta reveal reveal-d4">CPerezz &middot; EthCC 2026</div>
     </div>
@@ -916,7 +916,6 @@
         <ul class="points reveal reveal-d2">
             <li><strong>Snapshot layer / pathdb fast reads</strong> &mdash; biggest potential, unexplored</li>
             <li><strong>Pebble block size tuning</strong> &mdash; GD-5 nodes are ~1KB vs 4KB blocks</li>
-            <li><strong>Parallel EVM</strong> &mdash; NVMe QD=8 gives 8.7x throughput over QD=1</li>
             <li><strong>DB schema redesign</strong> &mdash; co-locating path siblings to reduce seek overhead</li>
         </ul>
         <p class="note reveal reveal-d3">4 optimization PRs merged in one week. Trajectory is encouraging.</p>
@@ -933,7 +932,7 @@
 <section class="slide section-title-slide" data-slide="13">
     <div class="slide-content">
         <div class="eyebrow reveal" style="font-size: clamp(1.1rem, 1.6vw, 1.4rem);">// ACT II</div>
-        <h1 class="hero-title reveal reveal-d1">The Partition Binary Tree<span class="cursor"></span></h1>
+        <h1 class="hero-title reveal reveal-d1">The Partitioned Binary Tree<span class="cursor"></span></h1>
     </div>
     <div class="slide-footer">
         <span class="footer-cmd">$ cd /pbt-spec</span>
