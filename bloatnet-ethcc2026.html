@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Who Holds Ethereum's State? — Partial Statefulness | EthCC 2026</title>
+    <title>Bloatnet: Stress-Testing Ethereum's State — EthCC 2026</title>
 
     <!-- Fonts: VT323 for CRT headings, IBM Plex Mono for readable body -->
     <link href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -33,7 +33,7 @@
             --text-dim: #444444;
             --white: #e8e8e8;
 
-            /* Typography — MUST use clamp() */
+            /* Typography — LARGER scale */
             --font-crt: 'VT323', monospace;
             --font-body: 'IBM Plex Mono', monospace;
             --title-size: clamp(2.5rem, 8vw, 5.5rem);
@@ -112,21 +112,21 @@
             :root {
                 --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
                 --content-gap: clamp(0.3rem, 1vw, 0.75rem);
-                --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
-                --body-size: clamp(0.65rem, 1.2vw, 0.9rem);
+                --title-size: clamp(1.5rem, 5vw, 3rem);
+                --body-size: clamp(0.7rem, 1.3vw, 1rem);
             }
             .nav-dots, .decorative { display: none; }
         }
         @media (max-height: 500px) {
             :root {
                 --slide-padding: clamp(0.4rem, 2vw, 1rem);
-                --title-size: clamp(1rem, 3.5vw, 1.5rem);
-                --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
-                --body-size: clamp(0.6rem, 1vw, 0.8rem);
+                --title-size: clamp(1.2rem, 4vw, 2rem);
+                --h2-size: clamp(1rem, 3vw, 1.6rem);
+                --body-size: clamp(0.65rem, 1.1vw, 0.9rem);
             }
         }
         @media (max-width: 600px) {
-            :root { --title-size: clamp(1.5rem, 8vw, 3rem); }
+            :root { --title-size: clamp(1.8rem, 9vw, 3.5rem); }
             .grid-2, .grid-3 { grid-template-columns: 1fr !important; }
             .two-col { flex-direction: column !important; }
         }
@@ -180,7 +180,7 @@
            =========================================== */
         .eyebrow {
             font-family: var(--font-crt);
-            font-size: clamp(0.85rem, 1.2vw, 1.1rem);
+            font-size: clamp(0.95rem, 1.4vw, 1.25rem);
             color: var(--green);
             opacity: 0.5;
             letter-spacing: 0.2em;
@@ -265,7 +265,7 @@
             left: 0;
             color: var(--green);
             font-family: var(--font-crt);
-            font-size: clamp(0.9rem, 1.5vw, 1.2rem);
+            font-size: clamp(1rem, 1.7vw, 1.4rem);
             text-shadow: 0 0 4px rgba(51, 255, 51, 0.3);
         }
         .points li strong { color: var(--text-primary); font-weight: 600; }
@@ -278,6 +278,7 @@
             gap: clamp(0.5rem, 1.5vw, 0.8rem);
             margin-top: clamp(0.5rem, 1.5vh, 1rem);
         }
+        .stat-row.cols-4 { grid-template-columns: repeat(4, 1fr); }
         .stat-row.cols-3 { grid-template-columns: repeat(3, 1fr); }
         .stat-row.cols-2 { grid-template-columns: repeat(2, 1fr); }
         .stat {
@@ -308,6 +309,20 @@
             letter-spacing: 0.1em;
             text-transform: uppercase;
             margin-top: 0.15rem;
+        }
+
+        /* Amber stat variant */
+        .stat.amber {
+            border: 1px solid #f97316;
+            background: rgba(249, 115, 22, 0.05);
+        }
+        .stat.amber::before {
+            background: linear-gradient(90deg, transparent, #f97316, transparent);
+            opacity: 0.6;
+        }
+        .stat.amber .stat-num {
+            color: #f97316;
+            text-shadow: 0 0 6px rgba(249, 115, 22, 0.4);
         }
 
         /* ===========================================
@@ -362,14 +377,14 @@
         }
         .card-title {
             font-family: var(--font-crt);
-            font-size: clamp(0.9rem, 1.5vw, 1.15rem);
+            font-size: clamp(1rem, 1.7vw, 1.3rem);
             color: var(--green);
             margin-bottom: clamp(0.15rem, 0.5vh, 0.3rem);
             text-shadow: 0 0 4px rgba(51,255,51,0.2);
         }
         .card-body {
             font-family: var(--font-body);
-            font-size: clamp(0.6rem, 1vw, 0.8rem);
+            font-size: clamp(0.7rem, 1.1vw, 0.9rem);
             color: var(--text-muted);
             line-height: 1.5;
         }
@@ -383,7 +398,7 @@
             padding: clamp(0.6rem, 1.5vw, 1rem) clamp(0.8rem, 2vw, 1.2rem);
             margin-top: clamp(0.5rem, 1vh, 0.8rem);
             font-family: var(--font-body);
-            font-size: clamp(0.6rem, 1.1vw, 0.85rem);
+            font-size: clamp(0.7rem, 1.2vw, 0.95rem);
             color: var(--text-secondary);
             line-height: 1.7;
             white-space: pre-wrap;
@@ -394,99 +409,7 @@
         .code-block .comment { color: var(--text-dim); }
 
         /* ===========================================
-           CODE PATH (inline trie path)
-           =========================================== */
-        .code-path {
-            font-family: var(--font-crt);
-            font-size: clamp(0.9rem, 1.5vw, 1.2rem);
-            color: var(--green);
-            line-height: 1.8;
-            text-shadow: 0 0 4px rgba(51,255,51,0.2);
-            margin: clamp(0.5rem, 1vh, 0.8rem) 0;
-        }
-
-        /* ===========================================
-           STEP FLOW
-           =========================================== */
-        .steps {
-            display: flex;
-            flex-direction: column;
-            gap: clamp(0.3rem, 0.8vh, 0.6rem);
-            margin-top: clamp(0.3rem, 1vh, 0.6rem);
-        }
-        .step {
-            display: flex;
-            gap: clamp(0.5rem, 1.5vw, 1rem);
-            align-items: flex-start;
-            border: 1px solid var(--border);
-            padding: clamp(0.4rem, 1vw, 0.7rem);
-            background: var(--green-bg);
-        }
-        .step-num {
-            font-family: var(--font-crt);
-            font-size: clamp(1rem, 2vw, 1.5rem);
-            color: var(--green);
-            text-shadow: 0 0 4px rgba(51,255,51,0.2);
-            flex-shrink: 0;
-            width: clamp(1.2rem, 2.5vw, 2rem);
-        }
-        .step-text {
-            font-family: var(--font-body);
-            font-size: clamp(0.6rem, 1.1vw, 0.85rem);
-            color: var(--text-secondary);
-            line-height: 1.5;
-        }
-        .step-text strong { color: var(--text-primary); }
-
-        /* ===========================================
-           TWO-COLUMN LAYOUT
-           =========================================== */
-        .two-col {
-            display: flex;
-            gap: clamp(1rem, 3vw, 2rem);
-            margin-top: clamp(0.5rem, 1.5vh, 1rem);
-        }
-        .two-col .col { flex: 1; min-width: 0; }
-        .col-heading {
-            font-family: var(--font-crt);
-            font-size: clamp(0.85rem, 1.3vw, 1.1rem);
-            color: var(--green);
-            margin-bottom: clamp(0.2rem, 0.5vh, 0.4rem);
-            text-shadow: 0 0 4px rgba(51,255,51,0.2);
-        }
-
-        /* ===========================================
-           COMPARISON ROWS
-           =========================================== */
-        .compare-rows {
-            display: flex;
-            flex-direction: column;
-            gap: clamp(0.3rem, 0.8vh, 0.5rem);
-            margin-top: clamp(0.5rem, 1vh, 0.8rem);
-        }
-        .compare-row {
-            display: flex;
-            align-items: center;
-            gap: clamp(0.5rem, 1.5vw, 1rem);
-            padding: clamp(0.4rem, 1vw, 0.7rem);
-            border: 1px solid var(--border);
-            background: var(--green-bg);
-        }
-        .compare-label {
-            font-family: var(--font-crt);
-            font-size: clamp(0.8rem, 1.2vw, 1rem);
-            color: var(--green);
-            min-width: clamp(6rem, 12vw, 10rem);
-            text-shadow: 0 0 4px rgba(51,255,51,0.2);
-        }
-        .compare-value {
-            font-family: var(--font-body);
-            font-size: clamp(0.65rem, 1.1vw, 0.85rem);
-            color: var(--text-secondary);
-        }
-
-        /* ===========================================
-           ALERT BOX (amber/warning — breaks green monotone)
+           ALERT BOX (amber/warning)
            =========================================== */
         .alert-box {
             border: 1px solid #f97316;
@@ -505,7 +428,7 @@
         }
         .alert-prefix {
             font-family: var(--font-crt);
-            font-size: clamp(0.7rem, 1vw, 0.85rem);
+            font-size: clamp(0.8rem, 1.1vw, 0.95rem);
             color: #f97316;
             letter-spacing: 0.15em;
             margin-bottom: clamp(0.2rem, 0.5vh, 0.4rem);
@@ -524,34 +447,6 @@
         }
 
         /* ===========================================
-           ROADMAP
-           =========================================== */
-        .roadmap {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: clamp(0.4rem, 1vw, 0.8rem);
-            margin-top: clamp(0.5rem, 1vh, 0.8rem);
-        }
-        .roadmap-item {
-            border: 1px solid var(--border);
-            padding: clamp(0.4rem, 1vw, 0.7rem);
-            background: var(--green-bg);
-        }
-        .roadmap-date {
-            font-family: var(--font-crt);
-            font-size: clamp(0.75rem, 1.2vw, 1rem);
-            color: var(--green);
-            text-shadow: 0 0 4px rgba(51,255,51,0.2);
-        }
-        .roadmap-desc {
-            font-family: var(--font-body);
-            font-size: clamp(0.55rem, 0.9vw, 0.75rem);
-            color: var(--text-muted);
-            margin-top: 0.2rem;
-            line-height: 1.4;
-        }
-
-        /* ===========================================
            DIAGRAM SLIDE
            =========================================== */
         .diagram-slide .slide-content {
@@ -559,9 +454,9 @@
         }
         .diagram-img {
             max-width: 100%;
-            max-height: min(70vh, 550px);
+            max-height: min(75vh, 580px);
             object-fit: contain;
-            border: 1px solid var(--border);
+            border: 1px solid #1a2a1a;
             border-radius: 4px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
             display: block;
@@ -593,7 +488,7 @@
         }
         .footer-cmd {
             font-family: var(--font-crt);
-            font-size: clamp(0.7rem, 1vw, 0.85rem);
+            font-size: clamp(0.75rem, 1.1vw, 0.95rem);
             color: var(--green-muted);
         }
         .footer-num {
@@ -682,34 +577,7 @@
             justify-content: center;
         }
         .section-title-slide .hero-title {
-            font-size: clamp(2.5rem, 8vw, 6rem);
-        }
-
-        /* ===========================================
-           TWO-COLUMN MERGED (text + image)
-           =========================================== */
-        .merged-layout {
-            display: flex;
-            gap: clamp(1rem, 3vw, 2rem);
-            margin-top: clamp(0.3rem, 1vh, 0.6rem);
-            align-items: center;
-        }
-        .merged-layout .merged-text { flex: 1; min-width: 0; }
-        .merged-layout .merged-img {
-            flex: 0 0 auto;
-            max-width: min(45%, 400px);
-        }
-        .merged-layout .merged-img img {
-            max-height: min(40vh, 350px);
-            width: 100%;
-            object-fit: contain;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-        }
-        @media (max-width: 800px) {
-            .merged-layout { flex-direction: column; }
-            .merged-layout .merged-img { max-width: 100%; }
+            font-size: clamp(2.8rem, 9vw, 6.5rem);
         }
 
         /* ===========================================
@@ -721,7 +589,7 @@
         }
         .title-meta {
             font-family: var(--font-body);
-            font-size: clamp(0.65rem, 1vw, 0.8rem);
+            font-size: clamp(0.7rem, 1.1vw, 0.9rem);
             color: var(--text-dim);
             margin-top: clamp(0.8rem, 2vh, 1.5rem);
         }
@@ -731,7 +599,7 @@
            =========================================== */
         .closing-title {
             font-family: var(--font-crt);
-            font-size: clamp(1.8rem, 5vw, 3.5rem);
+            font-size: clamp(2rem, 5.5vw, 4rem);
             line-height: 1.2;
             text-align: center;
         }
@@ -746,6 +614,58 @@
             font-size: var(--small-size);
             color: var(--text-dim);
             line-height: 1.8;
+        }
+
+        /* ===========================================
+           SVG CONTAINER
+           =========================================== */
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
+            overflow: hidden;
+        }
+        .svg-container svg {
+            width: 100%;
+            height: auto;
+            max-height: 85vh;
+        }
+
+        /* ===========================================
+           SMALL NOTE (muted body text)
+           =========================================== */
+        .note {
+            font-family: var(--font-body);
+            font-size: var(--small-size);
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-top: clamp(0.3rem, 0.8vh, 0.6rem);
+        }
+
+        /* ===========================================
+           TWO-COLUMN LAYOUT
+           =========================================== */
+        .two-col {
+            display: flex;
+            gap: clamp(1rem, 3vw, 2rem);
+            margin-top: clamp(0.5rem, 1.5vh, 1rem);
+        }
+        .two-col .col {
+            flex: 1;
+        }
+        .two-col .col .points {
+            gap: clamp(0.3rem, 0.6vh, 0.55rem);
+        }
+        .two-col .col .points li {
+            font-size: var(--small-size);
+        }
+
+        /* ===========================================
+           STAT ROW RESPONSIVE (4 cols)
+           =========================================== */
+        @media (max-width: 600px) {
+            .stat-row.cols-4 { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
@@ -762,589 +682,488 @@
      ============================================================ -->
 <section class="slide title-slide" data-slide="1">
     <div class="slide-content">
-        <div class="eyebrow reveal">// ETHEREUM RESEARCH</div>
+        <div class="eyebrow reveal">// ETHCC 2026</div>
         <h1 class="hero-title reveal reveal-d1">
-            <span class="w">Who Holds</span><br>Ethereum's State?<span class="cursor"></span>
+            <span class="w">Bloatnet:</span><br>Stress-Testing Ethereum's State<span class="cursor"></span>
         </h1>
         <hr class="divider reveal reveal-d2" style="max-width: 180px; margin: 0 auto;">
-        <p class="body-text reveal reveal-d3" style="text-align: center; max-width: 550px; margin-top: clamp(0.3rem, 1vh, 0.6rem);">
-            Partial Statefulness — Rethinking state in a post-ZKEVM world
+        <p class="body-text reveal reveal-d3" style="text-align: center; max-width: 650px; margin-top: clamp(0.3rem, 1vh, 0.6rem);">
+            From Shadow Fork to State Benchmarks: Tooling, Data &amp; Insights
         </p>
-        <div class="title-meta reveal reveal-d4">CPerezz · EthCC 2026</div>
+        <div class="title-meta reveal reveal-d4">CPerezz &middot; EthCC 2026</div>
+        <p class="note reveal reveal-d5" style="text-align: center; max-width: 600px; margin-top: clamp(0.5rem, 1vh, 0.8rem);">
+            This talk is about the machinery we've built &mdash; automated, reproducible, adversarial benchmarking infrastructure for data-driven decisions on Ethereum's state.
+        </p>
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ cat README.md</span>
+        <span class="footer-cmd">$ bloatnet --status</span>
         <span class="footer-num">1 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 2 — THE STATUS QUO
+     SLIDE 2 — THE QUESTIONS
      ============================================================ -->
 <section class="slide" data-slide="2">
     <div class="slide-content">
-        <div class="eyebrow reveal">// TODAY</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">The</span> Status Quo<span class="cursor"></span></h2>
+        <div class="eyebrow reveal">// MOTIVATION</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">The</span> Questions<span class="cursor"></span></h2>
         <hr class="divider reveal reveal-d1">
         <ul class="points reveal reveal-d2">
-            <li><strong>~13,900 nodes</strong> run 1M+ validator keys on the network</li>
-            <li><strong>Re-execution requires</strong> every full node to hold ~280 GB of state</li>
-            <li>This creates <strong>natural replication</strong> — state distributed across thousands of machines</li>
-            <li><strong>Geographic distribution</strong> makes censoring state access nearly impossible</li>
+            <li>What happens when state goes to terabytes?</li>
+            <li>What if contract storage reaches 100 GB? If bytecode size increases?</li>
+            <li>What if deep trie branches are spammed? If BALs land?</li>
+            <li>We're targeting 300M gas by end of 2026. Is that safe?</li>
+            <li>Block production has hard deadlines &mdash; exceed them and the block doesn't reach the p2p network</li>
         </ul>
-        <div class="stat-row cols-3 reveal reveal-d3">
-            <div class="stat"><div class="stat-num">13,900</div><div class="stat-label">Nodes</div></div>
-            <div class="stat"><div class="stat-num">1M+</div><div class="stat-label">Validator keys</div></div>
-            <div class="stat"><div class="stat-num">280 GB</div><div class="stat-label">State per node</div></div>
+        <div class="pull-quote reveal reveal-d3">
+            <p>"We need <span class="g">benchmarking and data</span>, not intuition."</p>
         </div>
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ du -sh /ethereum/geth/nodes/</span>
+        <span class="footer-cmd">$ state --questions</span>
         <span class="footer-num">2 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 3 — THE CENTRALIZATION TRAP
+     SLIDE 3 — THE SETUP
      ============================================================ -->
 <section class="slide" data-slide="3">
     <div class="slide-content">
-        <div class="eyebrow reveal">// THE SHIFT</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">ZKEVMs</span> Change Everything<span class="cursor"></span></h2>
+        <div class="eyebrow reveal">// EXPERIMENT</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">The</span> Setup<span class="cursor"></span></h2>
         <hr class="divider reveal reveal-d1">
-        <ul class="points reveal reveal-d2">
-            <li><strong>A SNARK proof replaces re-execution</strong> — verification in milliseconds</li>
-            <li><strong>The requirement disappears</strong> — full nodes no longer need state to validate</li>
-            <li><strong>State concentrates</strong> in machines with economic reasons to hold it — builders and RPC providers</li>
-            <li><strong>Snap sync degrades</strong> — fewer state-holding nodes → fewer peers → harder to bootstrap → vicious cycle</li>
-        </ul>
-        <div class="pull-quote reveal reveal-d3">
-            <p>"If verification is free, why pay for <span class="g">state</span>?"</p>
+        <div class="grid-2 reveal reveal-d2">
+            <div class="card">
+                <div class="card-title">&gt; Mainnet</div>
+                <div class="card-body">~284 GB state, real Ethereum</div>
+            </div>
+            <div class="card">
+                <div class="card-title">&gt; Bloatnet</div>
+                <div class="card-body">~600 GB state, shadow fork, bloated at 500&ndash;600M gas limits</div>
+            </div>
         </div>
+        <p class="body-text reveal reveal-d3" style="margin-top: clamp(0.5rem, 1.5vh, 1rem);">
+            4 clients &times; 2 networks &times; 90M gas benchmarks. Same hardware, same tests.
+        </p>
+        <p class="note reveal reveal-d4">
+            Benchmarking hardware: AMD Ryzen 7 PRO 8700GE (4 pinned cores, turbo disabled), 32 GB RAM, Docker, fixed 3.60 GHz
+        </p>
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ zkvm --verify block.proof</span>
+        <span class="footer-cmd">$ docker run --cpus=4 --memory=32g</span>
         <span class="footer-num">3 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 4 — [DIAGRAM] STATE COLLAPSE
+     SLIDE 4 — THE TOOLING ECOSYSTEM
      ============================================================ -->
-<section class="slide diagram-slide" data-slide="4">
-    <div class="slide-content" style="align-items: center;">
-        <img src="assets/state-collapse.png" alt="State distribution collapse: ~13,900 full nodes to a handful of operators" class="diagram-img reveal">
+<section class="slide" data-slide="4">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// INFRASTRUCTURE</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">The</span> Machinery<span class="cursor"></span></h2>
+        <hr class="divider reveal reveal-d1">
+        <p class="body-text reveal reveal-d2" style="margin-bottom: clamp(0.3rem, 0.8vh, 0.6rem);">A coordinated system for reproducible, adversarial state benchmarking.</p>
+        <ul class="points reveal reveal-d3">
+            <li><strong>Spamoor</strong> &mdash; State bloating engine. Inflated mainnet to 600 GB. Scenarios by CPerezz &amp; Pk910.</li>
+            <li><strong>Benchmarkoor</strong> &mdash; Orchestrates all benchmarks across clients. Collects slow-block metrics. By Rafael.</li>
+            <li><strong>execution-spec-tests</strong> &mdash; 20 benchmark functions, 14 categories. Built on Ignacio &amp; Kev's foundation, expanded with Jochem &amp; Louis.</li>
+            <li><strong>Slow block metrics</strong> &mdash; Standardized execution breakdown across ALL clients. By Gary Rong &amp; CPerezz.</li>
+            <li><strong>Syncoor</strong> &mdash; Sync performance benchmarking as state grows. By Rafael.</li>
+        </ul>
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ network --state-holders</span>
+        <span class="footer-cmd">$ benchmarkoor --run-suite all-clients</span>
         <span class="footer-num">4 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 5 — [SECTION TITLE] A DIFFERENT PATH
+     SLIDE 5 — [SCREENSHOT] BENCHMARKOOR IN ACTION
      ============================================================ -->
-<section class="slide section-title-slide" data-slide="5">
-    <div class="slide-content">
-        <div class="eyebrow reveal" style="font-size: clamp(1rem, 1.5vw, 1.3rem);">// ACT II</div>
-        <h1 class="hero-title reveal reveal-d1">A Different Path<span class="cursor"></span></h1>
+<section class="slide diagram-slide" data-slide="5">
+    <div class="slide-content" style="align-items: center;">
+        <img src="assets/bloatnet/benchmarkoor_screenshot.png" alt="Benchmarkoor visualization dashboard showing benchmark results across clients" class="diagram-img reveal" style="max-height: min(75vh, 580px);">
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ cd /partial-statefulness</span>
+        <span class="footer-cmd">$ benchmarkoor --dashboard</span>
         <span class="footer-num">5 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 6 — WHAT IS PARTIAL STATEFULNESS
+     SLIDE 6 — ALREADY DELIVERING
      ============================================================ -->
 <section class="slide" data-slide="6">
     <div class="slide-content">
-        <div class="eyebrow reveal">// PARTIAL STATEFULNESS</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">Hold Only</span> What You Care About<span class="cursor"></span></h2>
+        <div class="eyebrow reveal">// IMPACT</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Already</span> Delivering<span class="cursor"></span></h2>
         <hr class="divider reveal reveal-d1">
-        <div class="grid-3 reveal reveal-d2">
-            <div class="card">
-                <div class="card-title">> Full Account Trie</div>
-                <div class="card-body">Every account's balance, nonce, codeHash + all intermediate MPT nodes</div>
-            </div>
-            <div class="card">
-                <div class="card-title">> Selective Storage</div>
-                <div class="card-body">Choose which contracts to track — USDC, DAI, Uniswap. Full storage tries for those.</div>
-            </div>
-            <div class="card">
-                <div class="card-title">> No Re-execution</div>
-                <div class="card-body">Follow chain tip via Block Access Lists (BALs). Apply state diffs directly.</div>
-            </div>
-        </div>
-        <div class="stat-row cols-2 reveal reveal-d3">
-            <div class="stat"><div class="stat-num">59 GB</div><div class="stat-label">Accounts + USDC + DAI</div></div>
-            <div class="stat"><div class="stat-num">79%</div><div class="stat-label">Reduction vs full state</div></div>
+        <ul class="points reveal reveal-d2">
+            <li>Database corruptions discovered and fixed across clients</li>
+            <li>Severe performance regressions identified before mainnet impact</li>
+            <li>Bad scaling patterns exposed early (not after gas limit increases)</li>
+            <li>BAL (Block Access List) testing with Tony &mdash; validating EIPs on bloated state</li>
+            <li>Contributed significantly to execution-spec-tests benchmark suite</li>
+        </ul>
+        <div class="pull-quote reveal reveal-d3">
+            <p>"Bloatnet has already <span class="g">prevented real bugs</span> from reaching mainnet."</p>
         </div>
     </div>
-    <span class="footer-source">Source: go-ethereum PR #33764 (mainnet)</span>
     <div class="slide-footer">
-        <span class="footer-cmd">$ geth --partial-state</span>
+        <span class="footer-cmd">$ bloatnet --bugs-found</span>
         <span class="footer-num">6 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 7 — [DIAGRAM] PS NODE ARCHITECTURE
+     SLIDE 7 — [SECTION] CONTRACT STORAGE SIZE
      ============================================================ -->
-<section class="slide diagram-slide" data-slide="7">
-    <div class="slide-content" style="align-items: center;">
-        <img src="assets/ps-node-architecture.png" alt="Partial stateful node architecture: account trie + tracked storage + untracked roots" class="diagram-img reveal">
+<section class="slide section-title-slide" data-slide="7">
+    <div class="slide-content">
+        <div class="eyebrow reveal" style="font-size: clamp(1.1rem, 1.6vw, 1.4rem);">// RESULTS</div>
+        <h1 class="hero-title reveal reveal-d1">Contract Storage Size<span class="cursor"></span></h1>
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ du -sh ~/.ethereum/partial/</span>
+        <span class="footer-cmd">$ benchmark --category storage-scaling</span>
         <span class="footer-num">7 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 7 — THE PROOF PATH (MERGED with MPT diagram)
+     SLIDE 8 — [FIGURE] SLOAD STORAGE SCALING
      ============================================================ -->
-<section class="slide" data-slide="8">
-    <div class="slide-content">
-        <div class="eyebrow reveal">// ARCHITECTURE</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">Prove</span> What You Hold<span class="cursor"></span></h2>
-        <hr class="divider reveal reveal-d1">
-        <div class="merged-layout reveal reveal-d2">
-            <div class="merged-text">
-                <div class="code-path">
-                    storage slot → storage trie<br>
-                    &nbsp;&nbsp;→ storage root → account leaf<br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;→ account trie → state root
-                </div>
-                <p class="body-text" style="margin-top: clamp(0.3rem, 1vh, 0.6rem);">
-                    Cryptographic certainty, not trust. A full Merkle path from any tracked storage slot to the <span class="g">state root</span>.
-                </p>
-            </div>
-            <div class="merged-img">
-                <img src="assets/mpt-proof-path.png" alt="MPT proof path from storage slot to state root">
-            </div>
-        </div>
+<section class="slide diagram-slide" data-slide="8">
+    <div class="slide-content" style="align-items: center;">
+        <img src="assets/bloatnet/fig01_sload_storage_scaling.png" alt="SLOAD storage scaling benchmark results across clients" class="diagram-img reveal" style="max-height: min(75vh, 580px);">
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ eth_getProof --contract 0xA0b8...</span>
+        <span class="footer-cmd">$ sload --storage-size 4MB..50GB</span>
         <span class="footer-num">8 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 8 — THE SYNC PROCESS
+     SLIDE 9 — [FIGURE] SSTORE STORAGE SCALING
      ============================================================ -->
-<section class="slide" data-slide="9">
-    <div class="slide-content">
-        <div class="eyebrow reveal">// SYNC</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">Sync,</span> Don't Execute<span class="cursor"></span></h2>
-        <hr class="divider reveal reveal-d1">
-        <div class="steps reveal reveal-d2">
-            <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Snap sync account trie</strong> — download all accounts + intermediate MPT nodes (~50 GB)</div></div>
-            <div class="step"><div class="step-num">2</div><div class="step-text"><strong>Snap sync tracked storage</strong> — download full storage tries for selected contracts</div></div>
-            <div class="step"><div class="step-num">3</div><div class="step-text"><strong>Heal state via BALs</strong> — process Block Access Lists from pivot to HEAD — no re-execution</div></div>
-            <div class="step"><div class="step-num">4</div><div class="step-text"><strong>Follow the tip</strong> — apply BAL diffs per block. Serve proofs for tracked state.</div></div>
-        </div>
-        <p class="body-text reveal reveal-d3" style="margin-top: clamp(0.3rem, 1vh, 0.6rem); font-size: var(--small-size); color: var(--text-muted);">
-            BALs (EIP-7928) record all state changes per block — consensus-enforced completeness. Security: signing committee signature verification (pre-ZKEVM), SNARK proofs (post-ZKEVM). Landing in Glamsterdam 2026.
-        </p>
+<section class="slide diagram-slide" data-slide="9">
+    <div class="slide-content" style="align-items: center;">
+        <img src="assets/bloatnet/fig02_sstore_storage_scaling.png" alt="SSTORE storage scaling benchmark results across clients" class="diagram-img reveal" style="max-height: min(75vh, 580px);">
     </div>
-    <span class="footer-source">Source: EIP-7928 — eips.ethereum.org/EIPS/eip-7928</span>
     <div class="slide-footer">
-        <span class="footer-cmd">$ geth snap-sync --partial-state --contracts USDC,DAI</span>
+        <span class="footer-cmd">$ sstore --storage-size 4MB..50GB</span>
         <span class="footer-num">9 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 9 — STATE EXPIRY IS NOT THE ANSWER
+     SLIDE 10 — STORAGE SIZE VERDICT
      ============================================================ -->
 <section class="slide" data-slide="10">
     <div class="slide-content">
-        <div class="eyebrow reveal">// IN-PROTOCOL ALTERNATIVE</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">In-Protocol State Expiry</span> Falls Short<span class="cursor"></span></h2>
+        <div class="eyebrow reveal">// STORAGE SIZE</div>
+        <h2 class="slide-title reveal reveal-d1">9&ndash;64x <span class="w">Degradation</span><span class="cursor"></span></h2>
         <hr class="divider reveal reveal-d1">
-        <div class="grid-3 reveal reveal-d2">
-            <div class="card">
-                <div class="card-title">> UX Nightmare</div>
-                <div class="card-body">Accounts "expire" after 6 months of inactivity. Users discover their funds are inaccessible.</div>
-            </div>
-            <div class="card">
-                <div class="card-title">> Protocol Complexity</div>
-                <div class="card-body">Address space extension, resurrection mechanics. Protocol complexity skyrockets.</div>
-            </div>
-            <div class="card">
-                <div class="card-title">> Doesn't Solve It</div>
-                <div class="card-body">Wallets still need expired state from the same centralized providers to bundle revival + tx.</div>
-            </div>
-        </div>
-        <div class="pull-quote reveal reveal-d3">
-            <p>"In-protocol state expiry adds <span class="g">huge complexity</span>. Out-of-protocol approaches are less problematic, but PS offers a complementary path."</p>
+        <ul class="points reveal reveal-d2">
+            <li>"Cache cliff" between 4.23 MB and 1 GB &mdash; cache hit rates drop from ~81% to ~63%</li>
+            <li>Reth SLOAD: 63.8x degradation (MDBX page faults when data exceeds page cache)</li>
+            <li>Nethermind most resilient: 9.2x SLOAD, 6.9x SSTORE &mdash; stays under 2s at ALL sizes</li>
+            <li>Current gas is flat (2,100 per SLOAD) despite 9&ndash;64x cost variation</li>
+        </ul>
+        <div class="alert-box reveal reveal-d3">
+            <div class="alert-prefix">[CRITICAL]</div>
+            <p>Gas pricing must reflect contract storage size AND depth. EIP-8032 addresses size. Depth is harder &mdash; trie morphology only known after DB commit. Non-trivial to price correctly.</p>
         </div>
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ state-expiry --in-protocol --status REJECTED</span>
+        <span class="footer-cmd">$ benchmark --verdict storage-scaling</span>
         <span class="footer-num">10 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 10 — [SECTION TITLE] WHAT PS ENABLES
+     SLIDE 11 — [SECTION] STATE SIZE: 2X MAINNET
      ============================================================ -->
 <section class="slide section-title-slide" data-slide="11">
     <div class="slide-content">
-        <div class="eyebrow reveal" style="font-size: clamp(1rem, 1.5vw, 1.3rem);">// ACT III</div>
-        <h1 class="hero-title reveal reveal-d1">What PS Enables<span class="cursor"></span></h1>
+        <div class="eyebrow reveal" style="font-size: clamp(1rem, 1.5vw, 1.3rem);">// RESULTS</div>
+        <h1 class="hero-title reveal reveal-d1">State Size: 2x Mainnet<span class="cursor"></span></h1>
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ ps --capabilities</span>
+        <span class="footer-cmd">$ benchmark --section state-size</span>
         <span class="footer-num">11 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 11 — FOCIL / CENSORSHIP RESISTANCE
+     SLIDE 12 — [FIGURE] MAINNET VS BLOATNET SCATTER
      ============================================================ -->
-<section class="slide" data-slide="12">
-    <div class="slide-content">
-        <div class="eyebrow reveal">// CENSORSHIP RESISTANCE</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">Inclusion Lists</span> Need Account Data<span class="cursor"></span></h2>
-        <hr class="divider reveal reveal-d1">
-        <ul class="points reveal reveal-d2">
-            <li><strong>FOCIL (EIP-7805):</strong> 16 includers per slot select txs from the mempool</li>
-            <li>Includers need <strong>account data</strong> to pick VALID transactions</li>
-            <li>Valid txs in ILs = <strong>harder for builders to justify exclusion</strong></li>
-            <li>PS drops state from ~280 GB to ~59 GB → <strong>dramatically expands the includer pool</strong></li>
-        </ul>
-        <div class="alert-box reveal reveal-d3">
-            <div class="alert-prefix">[ALERT] CENSORSHIP VECTOR</div>
-            <p>A provider pressured to stop serving state for targeted addresses → users can't build txs → includers never see them → <span class="amber">invisible censorship</span> without touching the protocol.</p>
-        </div>
-        <p class="body-text reveal reveal-d4" style="font-size: var(--small-size); color: var(--text-muted); margin-top: clamp(0.2rem, 0.5vh, 0.4rem);">
-            Note: Today ILs need account data. With Frame Transactions (EIP-8141), includers will also need bounded contract state — witness-carrying txs bridge this gap.
-        </p>
+<section class="slide diagram-slide" data-slide="12">
+    <div class="slide-content" style="align-items: center;">
+        <img src="assets/bloatnet/fig04_mainnet_vs_bloatnet_scatter.png" alt="Mainnet vs Bloatnet scatter plot comparison across clients" class="diagram-img reveal" style="max-height: min(85vh, 650px);">
     </div>
-    <span class="footer-source">Source: EIP-7805 — eips.ethereum.org/EIPS/eip-7805</span>
     <div class="slide-footer">
-        <span class="footer-cmd">$ focil --include-from-mempool</span>
+        <span class="footer-cmd">$ benchmark --compare mainnet bloatnet</span>
         <span class="footer-num">12 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 12 — [DIAGRAM] IL VALIDATION PIPELINE (NEW)
+     SLIDE 12 — [FIGURE] RATIO HEATMAP BY CATEGORY
      ============================================================ -->
 <section class="slide diagram-slide" data-slide="13">
     <div class="slide-content" style="align-items: center;">
-        <img src="assets/il-validation-pipeline.png" alt="IL validation pipeline: account state, gas economics, signature, format checks filter txs into inclusion list" class="diagram-img reveal">
+        <img src="assets/bloatnet/fig06_ratio_heatmap_by_category.png" alt="Ratio heatmap showing Bloatnet/Mainnet performance by category" class="diagram-img reveal" style="max-height: min(85vh, 650px);">
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ tx.validate --nonce --balance --gas --sig</span>
+        <span class="footer-cmd">$ benchmark --ratio-heatmap categories</span>
         <span class="footer-num">13 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 13 — [DIAGRAM] FOCIL INCLUSION FLOW
+     SLIDE 13 — WHY 2x STATE DOESN'T BREAK THINGS (YET)
      ============================================================ -->
-<section class="slide diagram-slide" data-slide="14">
-    <div class="slide-content" style="align-items: center;">
-        <img src="assets/focil-flow.png" alt="FOCIL inclusion flow: mempool → PS node → inclusion list → block builder → attesters" class="diagram-img reveal">
+<section class="slide" data-slide="14">
+    <div class="slide-content">
+        <div class="eyebrow reveal">// STATE SIZE</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">2x State &ne;</span> 2x Slower<span class="cursor"></span></h2>
+        <hr class="divider reveal reveal-d1">
+        <ul class="points reveal reveal-d2">
+            <li><strong>Read dominance:</strong> State reads consume 50&ndash;85% of block time. Read cost is logarithmic in state size.</li>
+            <li><strong>Logarithmic MPT cost:</strong> Doubling state adds ~1 trie level &asymp; negligible per-operation impact.</li>
+            <li><strong>Variance caveat:</strong> N=1 runs per benchmark. Ratios show variance, not definitive trends.</li>
+            <li>Nethermind exception: 1.38x slower, 80% benchmarks degraded &mdash; early architectural signal?</li>
+        </ul>
+        <p class="body-text reveal reveal-d3" style="margin-top: clamp(0.5rem, 1vh, 0.8rem);">
+            284 GB&rarr;600 GB is safe. 600 GB&rarr;3 TB could hit hardware cliffs. We need to keep measuring.
+        </p>
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ focil --trace tx:mempool→il→block→attesters</span>
+        <span class="footer-cmd">$ benchmark --explain logarithmic-mpt</span>
         <span class="footer-num">14 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 14 — [SECTION TITLE] STATE MARKETS
+     SLIDE 14 — [FIGURE] REAL TOKEN COMPARISON
      ============================================================ -->
-<section class="slide section-title-slide" data-slide="15">
-    <div class="slide-content">
-        <div class="eyebrow reveal" style="font-size: clamp(1rem, 1.5vw, 1.3rem);">// ECONOMICS</div>
-        <h1 class="hero-title reveal reveal-d1">State Markets<span class="cursor"></span></h1>
+<section class="slide diagram-slide" data-slide="15">
+    <div class="slide-content" style="align-items: center;">
+        <img src="assets/bloatnet/fig07_real_token_comparison.png" alt="Real token comparison benchmarks: XEN, USDC, ARB, HST" class="diagram-img reveal" style="max-height: min(75vh, 580px);">
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ state-market --init</span>
+        <span class="footer-cmd">$ benchmark --tokens XEN USDC ARB HST</span>
         <span class="footer-num">15 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 15 — STATE MARKETS (MERGED with flywheel)
+     SLIDE 16 — [SECTION] OTHER BENCHMARKS
      ============================================================ -->
-<section class="slide" data-slide="16">
+<section class="slide section-title-slide" data-slide="16">
     <div class="slide-content">
-        <div class="eyebrow reveal">// ECONOMICS</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">An Emergent</span> Economy<span class="cursor"></span></h2>
-        <hr class="divider reveal reveal-d1">
-        <div class="merged-layout reveal reveal-d2">
-            <div class="merged-text">
-                <ul class="points">
-                    <li><strong>Hot / Cold pricing</strong> — hot state = cheap (many holders), cold state = premium (few holders)</li>
-                    <li><strong>Domain specialization</strong> — DeFi nodes, NFT nodes, protocol-specific. Agents, wallets, indexers as consumers.</li>
-                    <li><strong>Attestation analogy</strong> — one query ≈ nothing. Millions/year ≈ real revenue. Economics work at scale.</li>
-                    <li><strong>vs Portal Network</strong> — PS nodes have natural revenue: serving RPC queries and proofs for tracked contracts. The <span class="g">economic incentive</span> is built into the use case.</li>
-                </ul>
-            </div>
-            <div class="merged-img">
-                <img src="assets/state-market-flywheel.png" alt="State market flywheel: lower cost → more operators → geo distribution → more queries → more revenue">
-            </div>
-        </div>
+        <div class="eyebrow reveal" style="font-size: clamp(1rem, 1.5vw, 1.3rem);">// RESULTS</div>
+        <h1 class="hero-title reveal reveal-d1">Other Benchmarks<span class="cursor"></span></h1>
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ state-market --list-providers</span>
+        <span class="footer-cmd">$ benchmark --section other</span>
         <span class="footer-num">16 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 16 — WHO BUYS STATE? (NEW)
+     SLIDE 17 — [FIGURE] EXTCODESIZE BYTECODE SCALING
      ============================================================ -->
-<section class="slide" data-slide="17">
-    <div class="slide-content">
-        <div class="eyebrow reveal">// CONSUMERS</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">Who</span> Buys State?<span class="cursor"></span></h2>
-        <hr class="divider reveal reveal-d1">
-        <div class="grid-2 reveal reveal-d2">
-            <div class="card">
-                <div class="card-title">> Protocols & DAOs</div>
-                <div class="card-body">Uniswap DAO running PS nodes for Uniswap contracts isn't charity — it's infrastructure ROI. State availability directly affects tx success.</div>
-            </div>
-            <div class="card">
-                <div class="card-title">> Cross-chain Bridges</div>
-                <div class="card-body">ZK bridges need L1 state proofs. PS nodes serve cryptographic proofs — trustless cross-chain without full L1 nodes.</div>
-            </div>
-            <div class="card">
-                <div class="card-title">> Wallets & Agents</div>
-                <div class="card-body">Wallets need proof-carrying responses for trustless balance queries. Autonomous agents managing funds need verifiable state — proofs, not promises.</div>
-            </div>
-            <div class="card">
-                <div class="card-title">> Restaking (AVS)</div>
-                <div class="card-body">State serving as an Actively Validated Service. Operators earn through restaking economics — no new payment infra needed.</div>
-            </div>
-        </div>
+<section class="slide diagram-slide" data-slide="17">
+    <div class="slide-content" style="align-items: center;">
+        <img src="assets/bloatnet/fig15_extcodesize_bytecode_scaling.png" alt="EXTCODESIZE bytecode scaling benchmark across clients" class="diagram-img reveal" style="max-height: min(75vh, 580px);">
     </div>
+    <span class="footer-source">ethresear.ch/t/data-driven-analysis-on-eip-7907/23850</span>
     <div class="slide-footer">
-        <span class="footer-cmd">$ state-market --consumers</span>
+        <span class="footer-cmd">$ extcodesize --bytecode-range 0.5KB..24KB</span>
         <span class="footer-num">17 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 17 — NATURAL REDUNDANCY + SNAP SYNC (EXPANDED)
+     SLIDE 16 — EXTCODESIZE TAKEAWAYS
      ============================================================ -->
 <section class="slide" data-slide="18">
     <div class="slide-content">
-        <div class="eyebrow reveal">// THE VALUE</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">Natural</span> Redundancy<span class="cursor"></span></h2>
+        <div class="eyebrow reveal">// BYTECODE SIZE</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Bytecode</span> Impact<span class="cursor"></span></h2>
         <hr class="divider reveal reveal-d1">
-        <div class="compare-rows reveal reveal-d2">
-            <div class="compare-row">
-                <span class="compare-label">Today</span>
-                <span class="compare-value">~13,900 full nodes hold state (mandated by re-execution)</span>
-            </div>
-            <div class="compare-row">
-                <span class="compare-label">Post-ZKEVM</span>
-                <span class="compare-value">State held by few operators. Snap sync hammers a handful of servers — fragile, rate-limited.</span>
-            </div>
-            <div class="compare-row">
-                <span class="compare-label" style="color: var(--green);">With PS</span>
-                <span class="compare-value">Thousands of PS nodes serve snap sync ranges for tracked state. More peers, large distributed mesh.</span>
-            </div>
-        </div>
-        <p class="body-text reveal reveal-d3" style="margin-top: clamp(0.5rem, 1vh, 0.8rem);">
-            PS keeps <span class="g">snap sync viable</span> by distributing serving load across a large mesh. State markets incentivize collective coverage — popular contracts replicated by thousands, the long tail by fewer specialized nodes. No central coordinator needed — the market naturally converges toward a <span class="g">covering partition</span> through economic incentives.
-        </p>
+        <ul class="points reveal reveal-d2">
+            <li>Bytecode size affects EXTCODESIZE latency differently per client</li>
+            <li>Reth loads full bytecode for EXTCODESIZE queries (shouldn't need to)</li>
+            <li>EXTCODECOPY cold/warm gap: 3.6&ndash;4.0x &mdash; largest of all opcodes</li>
+            <li>EIP-2929's 26x gas surcharge may be overpriced</li>
+        </ul>
+        <p class="note reveal reveal-d3">Source: ethresear.ch EIP-7907 analysis</p>
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ snap-sync --list-peers --serving-ranges</span>
+        <span class="footer-cmd">$ extcodesize --verdict</span>
         <span class="footer-num">18 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 18 — [DIAGRAM] REDUNDANCY GRADIENT
+     SLIDE 17 — [FIGURE] MIXED SLOAD/SSTORE RATIOS
      ============================================================ -->
 <section class="slide diagram-slide" data-slide="19">
     <div class="slide-content" style="align-items: center;">
-        <img src="assets/redundancy-gradient.png" alt="Redundancy gradient: USDC replicated by thousands, cold state by few" class="diagram-img reveal">
+        <img src="assets/bloatnet/fig18_mixed_sload_sstore_ratio.png" alt="Mixed SLOAD/SSTORE ratio benchmark results" class="diagram-img reveal" style="max-height: min(75vh, 580px);">
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ state --redundancy-map</span>
+        <span class="footer-cmd">$ benchmark --mixed-ratio 50:50..90:10</span>
         <span class="footer-num">19 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 19 — VOPS: THE VALIDATOR FLOOR
+     SLIDE 18 — MIXED WORKLOAD TAKEAWAYS
      ============================================================ -->
 <section class="slide" data-slide="20">
-    <div class="slide-content" style="align-items: center; text-align: center;">
-        <div class="eyebrow reveal">// VOPS</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">The Validator</span> Floor<span class="cursor"></span></h2>
-        <hr class="divider reveal reveal-d1" style="max-width: 180px; margin: 0 auto;">
-        <div class="big-stat reveal reveal-d2">8.4 GB</div>
-        <p class="body-text reveal reveal-d3" style="max-width: 600px; text-align: center;">
-            Validity-Only Partial Statelessness — the minimum to stay useful post-ZKEVM.
-        </p>
-        <ul class="points reveal reveal-d4" style="text-align: left; max-width: 600px; margin-top: clamp(0.3rem, 1vh, 0.6rem);">
-            <li>Just 4 fields per account: address, nonce, balance, codeFlag (~40 bytes)</li>
-            <li>Enables: <strong>mempool management + FOCIL inclusion + SNARK verification</strong></li>
-            <li>Any PS node is also a VOPS node (VOPS is a subset)</li>
-            <li>Post-ZKEVM: the cost of keeping Ethereum <strong>censorship-resistant</strong></li>
-            <li>Scaling caveat: account trie grows with account count — if AI agents drive exponential growth, the impact on VOPS state size is an open question</li>
+    <div class="slide-content">
+        <div class="eyebrow reveal">// MIXED WORKLOADS</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">More Reads =</span> Worse Throughput<span class="cursor"></span></h2>
+        <hr class="divider reveal reveal-d1">
+        <ul class="points reveal reveal-d2">
+            <li>At 90% SLOAD: Geth drops from 240 to 84 Mgas/s</li>
+            <li>Real-world DeFi is read-heavy &mdash; sits in the worst-performing region</li>
+            <li>Write-only <em>appears</em> faster &mdash; but writes are more aggressively priced (SSTORE: 20K+ gas vs SLOAD: 2,100). Fewer ops fit per block = less I/O = faster processing. If priced equally, reads would win.</li>
         </ul>
     </div>
-    <span class="footer-source">Source: ethresear.ch — VOPS post (241M accounts × ~40 bytes)</span>
     <div class="slide-footer">
-        <span class="footer-cmd">$ du -sh /vops/accounts.db  # 8.4 GB</span>
+        <span class="footer-cmd">$ benchmark --mixed-verdict</span>
         <span class="footer-num">20 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 20 — [SECTION TITLE] OPEN QUESTIONS
+     SLIDE 21 — [SECTION] WORST CASES
      ============================================================ -->
 <section class="slide section-title-slide" data-slide="21">
     <div class="slide-content">
-        <div class="eyebrow reveal" style="font-size: clamp(1rem, 1.5vw, 1.3rem);">// OPEN QUESTIONS</div>
-        <h1 class="hero-title reveal reveal-d1">The Design Space<span class="cursor"></span></h1>
+        <div class="eyebrow reveal" style="font-size: clamp(1rem, 1.5vw, 1.3rem);">// RESULTS</div>
+        <h1 class="hero-title reveal reveal-d1">Worst Cases<span class="cursor"></span></h1>
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ research --open-questions</span>
+        <span class="footer-cmd">$ benchmark --section worst-cases</span>
         <span class="footer-num">21 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 21 — AA VS STATELESSNESS
+     SLIDE 22 — [FIGURE] THRESHOLD STRIP PLOT
      ============================================================ -->
-<section class="slide" data-slide="22">
-    <div class="slide-content">
-        <div class="eyebrow reveal">// OPEN QUESTION</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">Account Abstraction</span> vs Statelessness<span class="cursor"></span></h2>
-        <hr class="divider reveal reveal-d1">
-        <p class="body-text reveal reveal-d2">
-            Statelessness wants minimal state for validation. AA wants programmable validation with arbitrary state access. These pull in <strong>opposite directions</strong>.
-        </p>
-        <div class="pull-quote reveal reveal-d3">
-            <p>"The more state validation requires — and the more <span class="g">arbitrary</span> it can be — the harder it becomes for nodes to keep the mempool healthy."</p>
-        </div>
-        <p class="body-text reveal reveal-d4" style="margin-top: clamp(0.3rem, 1vh, 0.6rem);">
-            The AA scheme that makes validation <span class="g">NOT depend on state</span> is the best for statelessness. Schemed Transactions (EIP-8202) are fully PS-compatible. Frame Transactions (EIP-8141) need witness-carrying (~12-20 KB per tx).
-        </p>
+<section class="slide diagram-slide" data-slide="22">
+    <div class="slide-content" style="align-items: center;">
+        <img src="assets/bloatnet/fig19_threshold_strip_plot.png" alt="Threshold strip plot showing 2s and 4s deadline violations" class="diagram-img reveal" style="max-height: min(75vh, 580px);">
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ mempool --validate-tx --state-required ?</span>
+        <span class="footer-cmd">$ benchmark --thresholds 2s 4s</span>
         <span class="footer-num">22 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 22 — [DIAGRAM] VALIDATION SPECTRUM
+     SLIDE 20 — [FIGURE] WORST OFFENDERS
      ============================================================ -->
 <section class="slide diagram-slide" data-slide="23">
     <div class="slide-content" style="align-items: center;">
-        <img src="assets/validation-spectrum.png" alt="Validation spectrum: Schemed Tx (stateless, PS compatible) to Frame Tx (stateful, needs witnesses)" class="diagram-img reveal">
+        <img src="assets/bloatnet/fig20_worst_offenders.png" alt="Top 20 worst offender benchmarks across clients" class="diagram-img reveal" style="max-height: min(75vh, 580px);">
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ aa --compatibility-check</span>
+        <span class="footer-cmd">$ benchmark --worst 20</span>
         <span class="footer-num">23 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 23 — THE INSEPARABLE GRAPH
+     SLIDE 21 — KEY TAKEAWAYS
      ============================================================ -->
 <section class="slide" data-slide="24">
     <div class="slide-content">
-        <div class="eyebrow reveal">// HONEST CRITIQUE</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">The Inseparable</span> Graph<span class="cursor"></span></h2>
+        <div class="eyebrow reveal">// CONCLUSIONS</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">Key</span> Takeaways<span class="cursor"></span></h2>
         <hr class="divider reveal reveal-d1">
-        <p class="body-text reveal reveal-d2">
-            A fair critique: DeFi state is deeply interconnected. Serve USDC → need DEX pools → need routers → the closure is "most of DeFi."
-        </p>
-        <div class="two-col reveal reveal-d3">
-            <div class="col">
-                <div class="col-heading">> When valid</div>
-                <ul class="points">
-                    <li>Large aggregators (CoW Swap, 1inch)</li>
-                    <li>MEV searchers needing complete state</li>
-                    <li>Complex multi-hop routing</li>
-                </ul>
-            </div>
-            <div class="col">
-                <div class="col-heading">> When NOT valid</div>
-                <ul class="points">
-                    <li>VOPS nodes (account data only)</li>
-                    <li>ENS, privacy protocols</li>
-                    <li>Simple balance queries with proofs</li>
-                    <li>Specialized nodes serving one piece</li>
-                </ul>
-            </div>
-        </div>
-        <div class="pull-quote reveal reveal-d4">
-            <p>"PS nodes don't serve everything. They serve <span class="g">one piece</span>. Proofs batch across nodes sharing the same state root."</p>
+        <ul class="points reveal reveal-d2">
+            <li><strong>State size growth is not yet a performance concern.</strong> 2x state showed negligible impact. More worried about hardware limits (disk fullness, page faults at 3+ TB) than execution performance.</li>
+            <li><strong>Contract storage size is a major concern.</strong> 9&ndash;64x degradation and current pricing doesn&rsquo;t reflect it. Gas is flat at 2,100 regardless of contract storage size.</li>
+            <li><strong>Reads dominate performance bottlenecks.</strong> State reads are 50&ndash;85% of block time. But reads can&rsquo;t be upriced &mdash; they&rsquo;re the core operation that makes Ethereum work.</li>
+            <li><strong>Bytecode size increases need careful evaluation.</strong> Some clients show page-size dependent read speeds. We can&rsquo;t blindly move to 256 KB without benchmarking all clients.</li>
+            <li><strong>Deep reads/writes are dangerous and unpriced.</strong> Trie-depth attacks cause multi-second blocks. No pricing method accounts for depth &mdash; trie morphology is only known after committing to DB.</li>
+        </ul>
+        <div class="alert-box reveal reveal-d3">
+            <div class="alert-prefix">[NEXT]</div>
+            <p>BAL benchmarking on bloatnet. Client optimization collaboration. EIP exploration for storage &amp; depth-aware pricing. Tree/DB schema migration evaluation.</p>
         </div>
     </div>
     <div class="slide-footer">
-        <span class="footer-cmd">$ state --graph-closure USDC</span>
+        <span class="footer-cmd">$ benchmark --conclusions</span>
         <span class="footer-num">24 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 24 — IMPLEMENTATION
+     SLIDE 24 — CREDITS
      ============================================================ -->
 <section class="slide" data-slide="25">
     <div class="slide-content">
-        <div class="eyebrow reveal">// ALREADY REAL</div>
-        <h2 class="slide-title reveal reveal-d1"><span class="w">Already</span> Shipping<span class="cursor"></span></h2>
+        <div class="eyebrow reveal">// THANK YOU</div>
+        <h2 class="slide-title reveal reveal-d1"><span class="w">The</span> Team<span class="cursor"></span></h2>
         <hr class="divider reveal reveal-d1">
-        <div class="code-block reveal reveal-d2"><span class="comment"># Run a partial stateful node</span>
-<span class="cmd">geth</span> <span class="flag">--partial-state</span> \
-     <span class="flag">--partial-state.contracts</span> 0xA0b8...USDC,0x6B17...DAI \
-     <span class="flag">--partial-state.chain-retention</span> 1024</div>
-        <div class="stat-row cols-2 reveal reveal-d3">
-            <div class="stat"><div class="stat-num">59 GB</div><div class="stat-label">Mainnet (USDC + DAI)</div></div>
-            <div class="stat"><div class="stat-num">79%</div><div class="stat-label">vs full state</div></div>
+        <div class="two-col reveal reveal-d2">
+            <div class="col">
+                <ul class="points">
+                    <li><strong>Rafael</strong> (EthPandaOps) &mdash; Benchmarkoor, Spamoor, Syncoor</li>
+                    <li><strong>Paritosh</strong> (EthPandaOps) &mdash; Network setup &amp; maintenance</li>
+                    <li><strong>Philip</strong> &mdash; Spamoor bloating scenarios</li>
+                    <li><strong>Jochem &amp; Louis</strong> (Prototyping/STEEL, EF) &mdash; Benchmark design &amp; testing</li>
+                </ul>
+            </div>
+            <div class="col">
+                <ul class="points">
+                    <li><strong>Gary Rong &amp; CPerezz</strong> &mdash; Slow block metrics</li>
+                    <li><strong>Ignacio &amp; Kev</strong> (ZKEVM, EF) &mdash; exec-spec-tests foundation</li>
+                    <li><strong>Tony</strong> &mdash; BAL testing collaboration</li>
+                    <li><strong>All client teams</strong> &mdash; Geth, Reth, Besu, Nethermind</li>
+                </ul>
+            </div>
         </div>
-        <div class="roadmap reveal reveal-d4">
-            <div class="roadmap-item"><div class="roadmap-date">Glamsterdam '26</div><div class="roadmap-desc">BALs land — PS becomes possible</div></div>
-            <div class="roadmap-item"><div class="roadmap-date">Hegota '26</div><div class="roadmap-desc">AA decision impacts PS compatibility</div></div>
-            <div class="roadmap-item"><div class="roadmap-date">Next forks</div><div class="roadmap-desc">ZKEVMs — PS becomes essential</div></div>
-        </div>
-        <p class="body-text reveal reveal-d5" style="margin-top: clamp(0.3rem, 0.8vh, 0.5rem); font-size: var(--small-size); color: var(--text-muted);">
-            go-ethereum PR #33764 — only geth for now. Opportunity for other clients.
-        </p>
     </div>
-    <span class="footer-source">Source: github.com/ethereum/go-ethereum/pull/33764</span>
     <div class="slide-footer">
-        <span class="footer-cmd">$ git log --oneline ethereum/go-ethereum#33764</span>
+        <span class="footer-cmd">$ git log --format="%an" | sort -u</span>
         <span class="footer-num">25 / 26</span>
     </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 25 — CTA + CREDITS
+     SLIDE 25 — CTA
      ============================================================ -->
-<section class="slide" data-slide="26">
-    <div class="slide-content" style="align-items: center; text-align: center;">
-        <div class="closing-title reveal">
-            <span class="g">Try it.</span> <span class="w">Break it.</span> <span class="g">Tell us.</span><span class="cursor"></span>
-        </div>
-        <hr class="divider reveal reveal-d1" style="max-width: 180px; margin: clamp(0.5rem, 1.5vh, 1rem) auto;">
-        <ul class="points reveal reveal-d2" style="text-align: left; max-width: 500px;">
-            <li>Run a PS node after Glamsterdam ships</li>
-            <li>Provide feedback on the implementation</li>
-            <li>Help design state markets</li>
+<section class="slide section-title-slide" data-slide="26">
+    <div class="slide-content">
+        <h1 class="closing-title reveal">
+            <span class="g">The machinery</span> <span class="w">is ready.</span><span class="cursor"></span>
+        </h1>
+        <hr class="divider reveal reveal-d1" style="max-width: 180px; margin: 0 auto;">
+        <p class="body-text reveal reveal-d2" style="text-align: center; margin-bottom: clamp(0.5rem, 1vh, 0.8rem);">
+            Automated. Reproducible. Adversarial. Data-driven.
+        </p>
+        <ul class="points reveal reveal-d3" style="text-align: left; display: inline-flex; flex-direction: column;">
+            <li>Benchmarkoor: <strong>benchmarkoor.core.ethpandaops.io</strong></li>
+            <li>State benchmarks: <strong>github.com/ethereum/execution-specs/.../bloatnet</strong></li>
+            <li>Spamoor: <strong>github.com/ethpandaops/spamoor</strong></li>
+            <li>Syncoor: <strong>github.com/ethpandaops/syncoor</strong></li>
+            <li>Worst-case miner: <strong>github.com/CPerezz/worst_case_miner</strong></li>
+            <li>EIP-7907 analysis: <strong>ethresear.ch/t/data-driven-analysis-on-eip-7907/23850</strong></li>
         </ul>
-        <div class="credits reveal reveal-d3">
-            <p>CPerezz</p>
-            <p>github.com/ethereum/go-ethereum/pull/33764</p>
+        <div class="credits reveal reveal-d4">
+            <p>CPerezz &middot; EthCC 2026</p>
         </div>
     </div>
     <div class="slide-footer">
@@ -1354,7 +1173,7 @@
 </section>
 
 <!-- ============================================================
-     JAVASCRIPT: SLIDE PRESENTATION CONTROLLER
+     JAVASCRIPT — SlidePresentation class
      ============================================================ -->
 <script>
 class SlidePresentation {
@@ -1378,7 +1197,6 @@ class SlidePresentation {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('visible');
-                    // Update current slide index
                     const idx = Array.from(this.slides).indexOf(entry.target);
                     if (idx !== -1) {
                         this.currentSlide = idx;
